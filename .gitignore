@@ -56,3 +56,6 @@ docs/output/
 
 # PyBuilder
 target/
+
+# Pycharm nonsense
+.idea/
