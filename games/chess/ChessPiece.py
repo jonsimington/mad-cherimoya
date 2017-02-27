@@ -3,6 +3,7 @@ from games.chess.PieceType import PieceType
 
 class ChessPiece:
     def __init__(self):
+        self.id = -1
         self.type = None
         self.board_location = None
         self.rank_file = None
@@ -13,8 +14,8 @@ class ChessPiece:
 
     def __str__(self):
         if self.color == "White":
-            return str(self.type)
-        return str(self.type).lower()
+            return str(self.type) + str(self.id)
+        return str(self.type).lower() + str(self.id)
     
     def convert_from_game_piece(self, piece):
         self.type = PieceType[piece.type.upper()]
