@@ -1,6 +1,8 @@
 # This is where you build your AI for the Chess game.
 
 from joueur.base_ai import BaseAI
+from games.chess.ChessPiece import ChessPiece
+from games.chess.PieceType import PieceType
 import random
 
 
@@ -22,7 +24,49 @@ class AI(BaseAI):
         and game. You can initialize your AI here.
         """
 
-        # replace with your start logic
+        self.pieces = {}  # [None] * 16
+        self.enemy_pieces = {}  # [None] * 16
+        self.board = [None] * 8
+
+        # Build the board
+        for i in range(8):
+            self.board[i] = ["   "] * 8
+
+        # Load our pieces
+        id_num = 0
+        for piece in self.player.pieces:
+            p = ChessPiece()
+            p.convert_from_game_piece(piece)
+            p.id = id_num
+
+            # Add to the dictionary
+            self.pieces[str(p)] = p
+
+            # Mark the board
+            r, c = p.board_location
+            self.board[r][c] = str(p)
+
+            # Increment the id
+            id_num += 1
+
+        # Load enemy pieces
+        id_num = 0
+        for piece in self.player.opponent.pieces:
+            p = ChessPiece()
+            p.convert_from_game_piece(piece)
+            p.id = id_num
+
+            # Add to the dictionary
+            self.enemy_pieces[str(p)] = p
+
+            # Mark the board
+            r, c = p.board_location
+            self.board[r][c] = str(p)
+
+            # Increment the id
+            id_num += 1
+
+        print("Initialization done")
 
     def game_updated(self):
         """ This is called every time the game's state updates, so if you are
