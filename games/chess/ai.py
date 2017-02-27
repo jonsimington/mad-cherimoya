@@ -124,7 +124,10 @@ class AI(BaseAI):
 
     def random_valid_move(self):
         pass
-    
+
+    def is_valid(self, piece, board_location):
+        pass
+
     def print_current_board(self):
         """Prints the current board using pretty ASCII art
         Note: you can delete this function if you wish
