@@ -118,7 +118,7 @@ class AI(BaseAI):
         piece, rank_file = self.random_valid_move()
 
         # Apply that move and see if it crashes
-        self.pieces[piece].game_piece.move(rank_file[0], rank_file[1])
+        self.pieces[piece].game_piece.move(rank_file[1], rank_file[0])
 
         return True  # to signify we are done with our turn.
 
