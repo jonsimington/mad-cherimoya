@@ -140,7 +140,7 @@ class AI(BaseAI):
                         c *= movement_tuple[1]
 
                         if self.is_valid(random_piece, (r, c)):
-                            return str(random_piece), board_loc_to_rand_file(r, c)
+                            return str(random_piece), AI.board_loc_to_rank_file((r, c))
 
     @staticmethod
     def board_loc_to_rank_file(board_loc):
