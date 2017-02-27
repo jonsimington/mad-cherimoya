@@ -148,6 +148,10 @@ class AI(BaseAI):
     def board_loc_to_rank_file(board_loc):
         return 8 - board_loc[0], chr(ord("a") + board_loc[1])
 
+    @staticmethod
+    def rank_file_to_board_loc(rank_file):
+        return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
+
     def is_valid(self, piece, board_location):
         return True
 
