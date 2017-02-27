@@ -142,6 +142,10 @@ class AI(BaseAI):
                         if self.is_valid(random_piece, (r, c)):
                             return str(random_piece), board_loc_to_rand_file(r, c)
 
+    @staticmethod
+    def board_loc_to_rank_file(board_loc):
+        return 8 - board_loc[0], chr(ord("a") + board_loc[1])
+
     def is_valid(self, piece, board_location):
         pass
 
