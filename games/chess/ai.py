@@ -120,6 +120,10 @@ class AI(BaseAI):
         # Apply that move and see if it crashes
         self.pieces[piece].game_piece.move(rank_file[1], rank_file[0])
 
+        # Apply this move to the internal state
+        self.pieces[piece].board_location = AI.rank_file_to_board_loc(rank_file)
+        self.pieces[piece].rank_file = rank_file
+
         return True  # to signify we are done with our turn.
 
     def random_valid_move(self):
@@ -153,7 +157,9 @@ class AI(BaseAI):
         return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
 
     def is_valid(self, piece, board_location):
-        return True
+        r, c = board_location
+
+        return 0 <= r < 8 and 0 <= c < 8 and self.board[r][c] == "   "
 
     def print_current_board(self):
         """Prints the current board using pretty ASCII art
