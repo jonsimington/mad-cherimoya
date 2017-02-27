@@ -1,5 +1,5 @@
 from enum import Enum, unique
-import MoveType
+from games.chess.MoveType import MoveType
 
 
 @unique
