@@ -123,6 +123,7 @@ class AI(BaseAI):
         return True  # to signify we are done with our turn.
 
     def random_valid_move(self):
+        # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
         valid_moves = set()
         # Iterate through each piece we own
         for piece in list(self.pieces.keys()):
