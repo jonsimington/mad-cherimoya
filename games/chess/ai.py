@@ -148,7 +148,7 @@ class AI(BaseAI):
         return 8 - board_loc[0], chr(ord("a") + board_loc[1])
 
     def is_valid(self, piece, board_location):
-        pass
+        return True
 
     def print_current_board(self):
         """Prints the current board using pretty ASCII art
