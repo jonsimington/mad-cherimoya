@@ -114,11 +114,11 @@ class AI(BaseAI):
         # 3) print how much time remaining this AI has to calculate moves
         print("Time Remaining: " + str(self.player.time_remaining) + " ns")
 
-        # 4) make a random (and probably invalid) move.
-        random_piece = random.choice(self.player.pieces)
-        random_file = chr(ord("a") + random.randrange(8))
-        random_rank = random.randrange(8) + 1
-        random_piece.move(random_file, random_rank)
+        # Generate a random, valid move
+        piece, rank_file = self.random_valid_move()
+
+        # Apply that move and see if it crashes
+        self.pieces[piece].game_piece.move(rank_file[0], rank_file[1])
 
         return True  # to signify we are done with our turn.
 
@@ -126,7 +126,7 @@ class AI(BaseAI):
         # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
         valid_moves = set()
         # Iterate through each piece we own
-        for piece in list(self.pieces.keys()):
+        for key, piece in self.pieces.items():
             # Iterate through possible move types
             for move_type in piece.type.valid_moves:
                 # Iterate over the directions this move type has (up and down for vertical, etc...)
