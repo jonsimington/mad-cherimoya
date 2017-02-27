@@ -123,24 +123,25 @@ class AI(BaseAI):
         return True  # to signify we are done with our turn.
 
     def random_valid_move(self):
-        # Purposeful infinite loop, just in case we choose a piece that can't move. Will almost certainly terminate
-        while True:
-            random_piece = self.pieces[random.choice(self.pieces.keys())]
-
+        valid_moves = set()
+        # Iterate through each piece we own
+        for piece in list(self.pieces.keys()):
             # Iterate through possible move types
-            for move_type in random_piece.type.valid_moves:
+            for move_type in piece.type.valid_moves:
                 # Iterate over the directions this move type has (up and down for vertical, etc...)
                 for movement_tuple in move_type.movement_tuples:
                     # Iterate through possible lengths (IE Bishop moving 1 space or 5)
-                    for length in range(1, random_piece.piece_type.num_spaces + 1, 1):
+                    for length in range(1, piece.type.num_spaces + 1, 1):
                         # Grab current position on the board
-                        r, c = random_piece.board_position
+                        r, c = piece.board_location
 
-                        r *= movement_tuple[0]
-                        c *= movement_tuple[1]
+                        r += length * movement_tuple[0]
+                        c += length * movement_tuple[1]
 
-                        if self.is_valid(random_piece, (r, c)):
-                            return str(random_piece), AI.board_loc_to_rank_file((r, c))
+                        if self.is_valid(piece, (r, c)):
+                            valid_moves.add((str(piece), AI.board_loc_to_rank_file((r, c))))
+
+        return valid_moves.pop()
 
     @staticmethod
     def board_loc_to_rank_file(board_loc):
