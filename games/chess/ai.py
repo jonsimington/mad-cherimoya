@@ -118,8 +118,10 @@ class AI(BaseAI):
         self.pieces[piece].game_piece.move(rank_file[1], rank_file[0])
 
         # Apply this move to the internal state
+        del self.board[self.pieces[piece].board_location]
         self.pieces[piece].board_location = AI.rank_file_to_board_loc(rank_file)
         self.pieces[piece].rank_file = rank_file
+        self.board[self.pieces[piece].board_location] = piece
 
         return True  # to signify we are done with our turn.
 
@@ -143,7 +145,7 @@ class AI(BaseAI):
                         if self.is_valid(piece, (r, c)):
                             valid_moves.add((str(piece), AI.board_loc_to_rank_file((r, c))))
 
-        return valid_moves.pop()
+        return random.choice(list(valid_moves))
 
     @staticmethod
     def board_loc_to_rank_file(board_loc):
@@ -156,7 +158,26 @@ class AI(BaseAI):
     def is_valid(self, piece, board_location):
         r, c = board_location
 
-        return 0 <= r < 8 and 0 <= c < 8 and board_location not in self.board.keys()
+        # Common sense check; is this space even on the board?
+        if not (0 <= r < 8 and 0 <= c < 8):
+            return False
+
+        # Knights don't have to move through their spaces
+        if piece.type == PieceType.KNIGHT:
+            # Check if target location is empty or contains an enemy
+            if board_location in self.board.keys():
+                # Check to see if the space is an enemy or not
+                if piece.color != self.board[board_location].color:
+                    # Capture an enemy
+                    return True
+                else:
+                    return False
+            else:
+                # Space is empty
+                return True
+        else:
+            # Some other piece
+            return False
 
     def print_current_board(self):
         """Prints the current board using pretty ASCII art
