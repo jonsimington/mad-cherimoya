@@ -24,13 +24,12 @@ class AI(BaseAI):
         and game. You can initialize your AI here.
         """
 
-        self.pieces = {}  # [None] * 16
-        self.enemy_pieces = {}  # [None] * 16
-        self.board = [None] * 8
+        # Reference pieces by id
+        self.pieces = {}
+        self.enemy_pieces = {}
 
-        # Build the board
-        for i in range(8):
-            self.board[i] = ["   "] * 8
+        # Reference pieces by location
+        self.board = {}
 
         # Load our pieces
         id_num = 0
@@ -43,8 +42,7 @@ class AI(BaseAI):
             self.pieces[str(p)] = p
 
             # Mark the board
-            r, c = p.board_location
-            self.board[r][c] = str(p)
+            self.board[p.board_location] = p
 
             # Increment the id
             id_num += 1
@@ -60,8 +58,7 @@ class AI(BaseAI):
             self.enemy_pieces[str(p)] = p
 
             # Mark the board
-            r, c = p.board_location
-            self.board[r][c] = str(p)
+            self.board[p.board_location] = p
 
             # Increment the id
             id_num += 1
@@ -159,7 +156,7 @@ class AI(BaseAI):
     def is_valid(self, piece, board_location):
         r, c = board_location
 
-        return 0 <= r < 8 and 0 <= c < 8 and self.board[r][c] == "   "
+        return 0 <= r < 8 and 0 <= c < 8 and board_location not in self.board.keys()
 
     def print_current_board(self):
         """Prints the current board using pretty ASCII art
