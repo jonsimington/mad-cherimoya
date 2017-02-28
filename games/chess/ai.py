@@ -32,11 +32,9 @@ class AI(BaseAI):
         self.board = {}
 
         # Load our pieces
-        id_num = 0
         for piece in self.player.pieces:
             p = ChessPiece()
             p.convert_from_game_piece(piece)
-            p.id = id_num
 
             # Add to the dictionary
             self.pieces[str(p)] = p
@@ -44,24 +42,16 @@ class AI(BaseAI):
             # Mark the board
             self.board[p.board_location] = p
 
-            # Increment the id
-            id_num += 1
-
         # Load enemy pieces
-        id_num = 0
         for piece in self.player.opponent.pieces:
             p = ChessPiece()
             p.convert_from_game_piece(piece)
-            p.id = id_num
 
             # Add to the dictionary
             self.enemy_pieces[str(p)] = p
 
             # Mark the board
             self.board[p.board_location] = p
-
-            # Increment the id
-            id_num += 1
 
         print("Initialization done")
 

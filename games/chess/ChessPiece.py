@@ -25,3 +25,4 @@ class ChessPiece:
         self.captured = piece.captured
         self.color = piece.owner.color
         self.game_piece = piece
+        self.id = piece.id
