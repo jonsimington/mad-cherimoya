@@ -160,6 +160,7 @@ class AI(BaseAI):
         piece.board_location = AI.rank_file_to_board_loc(rank_file)
         piece.rank_file = rank_file
         self.board[piece.board_location] = piece
+        piece.has_moved = True
 
         return True  # to signify we are done with our turn.
 
