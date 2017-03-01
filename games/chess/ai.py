@@ -272,7 +272,38 @@ class AI(BaseAI):
                 return True
         else:
             # Some other piece
-            return False
+
+            # Is the target location occupied?
+            if board_location in self.board.keys():
+                # Is it an ally?
+                piece_on_target_loc = self.board[board_location]
+
+                if piece_on_target_loc.color == piece.color:
+                    return False
+
+            # Check every space between it
+            r1, c1 = board_location
+            r2, c2 = piece.board_location
+            movement_tuple = r1 - r2, c1 - c2
+
+            r, c = movement_tuple
+            # Normalize the tuple
+            movement_tuple = r / abs(r) if r != 0 else 0, c / abs(c) if c != 0 else 0
+
+            # The number of spaces we're moving
+            delta = max(abs(r), abs(c))
+
+            for i in range(1, delta + 1, 1):
+                r, c = piece.board_location
+
+                r += i * movement_tuple[0]
+                c += i * movement_tuple[1]
+
+                # If that space is occupied
+                if (r, c) in self.board.keys():
+                    return False
+
+            return True
 
     @staticmethod
     def create_id(piece):
