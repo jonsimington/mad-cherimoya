@@ -94,9 +94,55 @@ class AI(BaseAI):
         # 1) print the board to the console
         self.print_current_board()
 
-        # 2) print the opponent's last move to the console
         if len(self.game.moves) > 0:
-            print("Opponent's Last Move: '" + self.game.moves[-1].san + "'")
+            # Grab the previous move
+            m = self.game.moves[-1]
+            enemy_piece = m.piece
+
+            if enemy_piece.type == "Knight":
+                enemy_piece_id = "N"
+            else:
+                enemy_piece_id = enemy_piece.type[0]
+
+            if enemy_piece.owner.color != "White":
+                enemy_piece_id = enemy_piece_id.lower()
+
+            enemy_piece_id += enemy_piece.id
+
+            print("Opponent's Last Move: {} {} -> {}".format(enemy_piece_id, m.from_file + str(m.from_rank),
+                                                             m.to_file + str(m.to_rank)))
+
+            # Deal with capture
+            captured_piece = m.captured
+
+            if captured_piece is not None:
+                # Build the id
+                if captured_piece.type == "Knight":
+                    captured_piece_id = "N"
+                else:
+                    captured_piece_id = captured_piece.type[0]
+
+                if captured_piece.owner.color != "White":
+                    captured_piece_id = captured_piece_id.lower()
+
+                captured_piece_id += captured_piece.id
+
+                print("Enemy {} captured our piece {}!".format(enemy_piece_id, captured_piece_id))
+
+                # Removed the captured piece from the board and our pieces dict
+                del self.board[AI.rank_file_to_board_loc((m.to_rank, m.to_file))]
+                del self.pieces[captured_piece_id]
+
+            # Remove enemy piece's old position
+            del self.board[AI.rank_file_to_board_loc((m.from_rank, m.from_file))]
+
+            # Set the enemy piece's new position
+            self.board[AI.rank_file_to_board_loc((m.to_rank, m.to_file))] = self.enemy_pieces[enemy_piece_id]
+
+            # Update the enemy_pieces dict
+            self.enemy_pieces[enemy_piece_id].board_location = AI.rank_file_to_board_loc((m.to_rank, m.to_file))
+            self.enemy_pieces[enemy_piece_id].rank_file = m.to_rank, m.to_file
+            self.enemy_pieces[enemy_piece_id].has_moved = True
 
         # 3) print how much time remaining this AI has to calculate moves
         print("Time Remaining: " + str(self.player.time_remaining) + " ns")
@@ -111,7 +157,7 @@ class AI(BaseAI):
         del self.board[self.pieces[piece].board_location]
         self.pieces[piece].board_location = AI.rank_file_to_board_loc(rank_file)
         self.pieces[piece].rank_file = rank_file
-        self.board[self.pieces[piece].board_location] = piece
+        self.board[self.pieces[piece].board_location] = self.pieces[piece]
 
         return True  # to signify we are done with our turn.
 
