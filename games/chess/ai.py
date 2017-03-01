@@ -148,16 +148,18 @@ class AI(BaseAI):
         print("Time Remaining: " + str(self.player.time_remaining) + " ns")
 
         # Generate a random, valid move
-        piece, rank_file = self.random_valid_move()
+        piece_id, rank_file = self.random_valid_move()
+        
+        piece = self.pieces[piece_id]
 
         # Apply that move and see if it crashes
-        self.pieces[piece].game_piece.move(rank_file[1], rank_file[0])
+        piece.game_piece.move(rank_file[1], rank_file[0])
 
         # Apply this move to the internal state
-        del self.board[self.pieces[piece].board_location]
-        self.pieces[piece].board_location = AI.rank_file_to_board_loc(rank_file)
-        self.pieces[piece].rank_file = rank_file
-        self.board[self.pieces[piece].board_location] = self.pieces[piece]
+        del self.board[piece.board_location]
+        piece.board_location = AI.rank_file_to_board_loc(rank_file)
+        piece.rank_file = rank_file
+        self.board[piece.board_location] = piece
 
         return True  # to signify we are done with our turn.
 
