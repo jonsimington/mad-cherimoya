@@ -4,7 +4,7 @@ from games.chess.MoveType import MoveType
 
 @unique
 class PieceType(Enum):
-    PAWN = ([MoveType.VERTICAL], 1)
+    PAWN = ([MoveType.VERTICAL, MoveType.DIAGONAL], 1)
     ROOK = ([MoveType.VERTICAL, MoveType.HORIZONTAL], 8)
     KNIGHT = ([MoveType.L_SHAPED], 1)
     BISHOP = ([MoveType.DIAGONAL], 8)
