@@ -168,10 +168,15 @@ class AI(BaseAI):
     def valid_moves_for_piece(self, piece):
         # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
         valid_moves = set()
-
+        extra_moves = []
         if piece.type == PieceType.PAWN:
+            r, c = piece.board_location
             # TODO: En Passant
             # TODO: Two space pawn movement
+            if not piece.has_moved:
+                # Move it two spaces
+                extra_moves.append((r + -self.player.rank_direction * 2, c))
+
             # TODO: Promotion
             pass
         elif piece == PieceType.KING:
@@ -192,6 +197,10 @@ class AI(BaseAI):
 
                     if self.is_valid(piece, (r, c)):
                         valid_moves.add((str(piece), AI.board_loc_to_rank_file((r, c))))
+        # Take care of any extra moves
+        for m in extra_moves:
+            if self.is_valid(piece, m):
+                valid_moves.add((str(piece), AI.board_loc_to_rank_file(m)))
 
         return valid_moves
 
@@ -204,7 +213,8 @@ class AI(BaseAI):
 
         elif piece.type == PieceType.PAWN:
             # Negate rank direction to fit my coordinate system
-            if board_location[0] - piece.board_location[0] != -self.player.rank_direction:
+            delta_row = board_location[0] - piece.board_location[0]
+            if delta_row / abs(delta_row) != -self.player.rank_direction:
                 # Pawns can't move backwards
                 return False
 
@@ -218,7 +228,9 @@ class AI(BaseAI):
                 if piece.has_moved:
                     return False
 
-                return board_location not in self.board.keys()
+                # If both spaces directly in front of the pawn aren't occupied
+                return (piece.board_location[0] + delta_row / abs(delta_row), piece.board_location[1]) not in \
+                       self.board.keys() and board_location not in self.board.keys()
 
             if board_location[1] != piece.board_location[1]:
                 # It's moving diagonally
