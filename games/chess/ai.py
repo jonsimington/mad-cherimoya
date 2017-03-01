@@ -194,6 +194,9 @@ class AI(BaseAI):
     def rank_file_to_board_loc(rank_file):
         return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
 
+    def valid_moves_for_piece(self, piece):
+        return set()
+
     def is_valid(self, piece, board_location):
         r, c = board_location
 
