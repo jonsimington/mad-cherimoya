@@ -166,23 +166,11 @@ class AI(BaseAI):
 
     def random_valid_move(self):
         # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
+        # TODO: Select a piece and print all legal moves for that piece
         valid_moves = set()
         # Iterate through each piece we own
         for key, piece in self.pieces.items():
-            # Iterate through possible move types
-            for move_type in piece.type.valid_moves:
-                # Iterate over the directions this move type has (up and down for vertical, etc...)
-                for movement_tuple in move_type.movement_tuples:
-                    # Iterate through possible lengths (IE Bishop moving 1 space or 5)
-                    for length in range(1, piece.type.num_spaces + 1, 1):
-                        # Grab current position on the board
-                        r, c = piece.board_location
-
-                        r += length * movement_tuple[0]
-                        c += length * movement_tuple[1]
-
-                        if self.is_valid(piece, (r, c)):
-                            valid_moves.add((str(piece), AI.board_loc_to_rank_file((r, c))))
+            valid_moves |= self.valid_moves_for_piece(piece)
 
         return random.choice(list(valid_moves))
 
