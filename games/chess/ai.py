@@ -209,6 +209,8 @@ class AI(BaseAI):
                     if self.is_valid(piece, (r, c)):
                         valid_moves.add((str(piece), AI.board_loc_to_rank_file((r, c))))
 
+        return valid_moves
+
     def is_valid(self, piece, board_location):
         r, c = board_location
 
