@@ -215,6 +215,10 @@ class AI(BaseAI):
         # Common sense check; is this space even on the board?
         if not (0 <= r < 8 and 0 <= c < 8):
             return False
+        # Negate rank direction to fit my coordinate system
+        elif piece.type == PieceType.PAWN and board_location[0] != -self.player.rank_direction:
+            # Pawns can't move backwards
+            return False
 
         # Knights don't have to move through their spaces
         if piece.type == PieceType.KNIGHT:
