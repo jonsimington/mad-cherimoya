@@ -99,15 +99,7 @@ class AI(BaseAI):
             m = self.game.moves[-1]
             enemy_piece = m.piece
 
-            if enemy_piece.type == "Knight":
-                enemy_piece_id = "N"
-            else:
-                enemy_piece_id = enemy_piece.type[0]
-
-            if enemy_piece.owner.color != "White":
-                enemy_piece_id = enemy_piece_id.lower()
-
-            enemy_piece_id += enemy_piece.id
+            enemy_piece_id = AI.create_id(enemy_piece)
 
             print("Opponent's Last Move: {} {} -> {}".format(enemy_piece_id, m.from_file + str(m.from_rank),
                                                              m.to_file + str(m.to_rank)))
@@ -117,15 +109,7 @@ class AI(BaseAI):
 
             if captured_piece is not None:
                 # Build the id
-                if captured_piece.type == "Knight":
-                    captured_piece_id = "N"
-                else:
-                    captured_piece_id = captured_piece.type[0]
-
-                if captured_piece.owner.color != "White":
-                    captured_piece_id = captured_piece_id.lower()
-
-                captured_piece_id += captured_piece.id
+                captured_piece_id = AI.create_id(captured_piece)
 
                 print("Enemy {} captured our piece {}!".format(enemy_piece_id, captured_piece_id))
 
@@ -220,12 +204,61 @@ class AI(BaseAI):
 
         elif piece.type == PieceType.PAWN:
             # Negate rank direction to fit my coordinate system
-            if board_location[0] != -self.player.rank_direction:
+            if board_location[0] - piece.board_location[0] != -self.player.rank_direction:
                 # Pawns can't move backwards
                 return False
 
+            spaces_moved = abs(board_location[0] - piece.board_location[0])
+            if spaces_moved > 2:
+                # Pawn can move at most 2 spaces
+                return False
+            elif spaces_moved == 2:
+                # Special two-space rule, but pawns can only do that at the start
+
+                if piece.has_moved:
+                    return False
+
+                return board_location not in self.board.keys()
+
+            if board_location[1] != piece.board_location[1]:
+                # It's moving diagonally
+
+                # En Passant?
+                if len(self.game.moves) > 0:
+                    # There was some previous move
+
+                    # If there is an adjacent piece
+                    if (piece.board_location[0], board_location[1]) in self.board.keys():
+                        pawn = self.board[(piece.board_location[0], board_location[1])]
+                        
+                        # If it's a pawn
+                        if pawn.type == PieceType.PAWN:
+                            
+                            # If it's an enemy
+                            if pawn.color != piece.color:
+                                
+                                # Check previous move
+                                move = self.game.moves[-1]
+
+                                # Did this piece move last turn?
+                                if str(pawn) == AI.create_id(move.piece):
+                                    # Is this the first time it moved?
+                                    # TODO: This
+                                    return True
+
+                if board_location in self.board.keys():
+                    # Something is there
+                    other_piece = self.board[board_location]
+
+                    if other_piece.color != piece.color:
+                        # Get 'em
+                        return True
+
+            else:  # It's moving forward
+                # Is there something there?
+                return board_location not in self.board.keys()
         # Knights don't have to move through their spaces
-        if piece.type == PieceType.KNIGHT:
+        elif piece.type == PieceType.KNIGHT:
             # Check if target location is empty or contains an enemy
             if board_location in self.board.keys():
                 # Check to see if the space is an enemy or not
@@ -240,6 +273,20 @@ class AI(BaseAI):
         else:
             # Some other piece
             return False
+
+    @staticmethod
+    def create_id(piece):
+        if piece.type == "Knight":
+            piece_id = "N"
+        else:
+            piece_id = piece.type[0]
+
+        if piece.owner.color != "White":
+            piece_id = piece_id.lower()
+
+        piece_id += piece.id
+
+        return piece_id
 
     def print_current_board(self):
         """Prints the current board using pretty ASCII art
