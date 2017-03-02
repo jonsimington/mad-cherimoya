@@ -121,14 +121,14 @@ class AI(BaseAI):
 
                     if self.player.color != "Black":
                         # It's an enemy piece
-                        loc = loc[0] + 1, loc[1]
-                        self.en_passant_enemy = self.board[loc]
+                        piece_loc = loc[0] + 1, loc[1]
+                        self.en_passant_enemy = self.board[piece_loc], loc
                 else:
                     # It's a white piece
                     if self.player.color != "White":
                         # It's an enemy piece
-                        loc = loc[0] - 1, loc[1]
-                        self.en_passant_enemy = self.board[loc]
+                        piece_loc = loc[0] - 1, loc[1]
+                        self.en_passant_enemy = self.board[piece_loc], loc
 
                 if self.en_passant_enemy is not None:
                     print("There is an enemy who may be able to be captured en passant")
