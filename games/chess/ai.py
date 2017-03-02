@@ -32,6 +32,7 @@ class AI(BaseAI):
 
         # Reference pieces by location
         self.board = {}
+        self.en_passant_enemy = None
 
         # Load our pieces
         for piece in self.player.pieces:
@@ -113,6 +114,25 @@ class AI(BaseAI):
                 # A piece can move en passant
                 print("En Passant available!")
 
+                loc = AI.rank_file_to_board_loc((int(fen[3][1]), fen[3][0]))
+
+                if loc[0] % 2 == 0:
+                    # It's a black piece
+
+                    if self.player.color != "Black":
+                        # It's an enemy piece
+                        loc = loc[0] + 1, loc[1]
+                        self.en_passant_enemy = self.board[loc]
+                else:
+                    # It's a white piece
+                    if self.player.color != "White":
+                        # It's an enemy piece
+                        loc = loc[0] - 1, loc[1]
+                        self.en_passant_enemy = self.board[loc]
+
+                if self.en_passant_enemy is not None:
+                    print("There is an enemy who may be able to be captured en passant")
+
         print("Initialization done")
 
     def game_updated(self):
@@ -155,6 +175,7 @@ class AI(BaseAI):
         self.print_current_board()
 
         if len(self.game.moves) > 0:
+            # TODO: Set the en passant enemy variable
             # Grab the previous move
             m = self.game.moves[-1]
             enemy_piece = m.piece
@@ -205,6 +226,9 @@ class AI(BaseAI):
         piece.rank_file = rank_file
         self.board[piece.board_location] = piece
         piece.has_moved = True
+
+        # Reset the en passant enemy because regardless of whether or not we captured it, en passant no longer exists
+        self.en_passant_enemy = None
 
         return True  # to signify we are done with our turn.
 
