@@ -172,7 +172,8 @@ class AI(BaseAI):
         if piece.type == PieceType.PAWN:
             r, c = piece.board_location
             # TODO: En Passant
-            # TODO: Two space pawn movement
+
+            # Two space pawn movement
             if not piece.has_moved:
                 # Move it two spaces
                 extra_moves.append((r + -self.player.rank_direction * 2, c))
