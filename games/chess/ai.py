@@ -23,6 +23,8 @@ class AI(BaseAI):
         """ This is called once the game starts and your AI knows its playerID
         and game. You can initialize your AI here.
         """
+        # If a custom (non-default) FEN has been loaded
+        custom_fen = self.game.fen != "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
         # Reference pieces by id
         self.pieces = {}
@@ -36,6 +38,16 @@ class AI(BaseAI):
             p = ChessPiece()
             p.convert_from_game_piece(piece)
 
+            p.has_moved = custom_fen
+            # Special pawn case for determining 2 space move
+            if p.type == PieceType.PAWN:
+                if p.color == "White":
+                    # If the pawn is on rank 2
+                    p.has_moved = p.board_location[0] != 6
+                else:
+                    # If the pawn is on rank 7
+                    p.has_moved = p.board_location[0] != 1
+
             # Add to the dictionary
             self.pieces[str(p)] = p
 
@@ -47,11 +59,59 @@ class AI(BaseAI):
             p = ChessPiece()
             p.convert_from_game_piece(piece)
 
+            p.has_moved = custom_fen
+            # Special pawn case for determining 2 space move
+            if p.type == PieceType.PAWN:
+                if p.color == "White":
+                    # If the pawn is on rank 2
+                    p.has_moved = p.board_location[0] != 6
+                else:
+                    # If the pawn is on rank 7
+                    p.has_moved = p.board_location[0] != 1
+
             # Add to the dictionary
             self.enemy_pieces[str(p)] = p
 
             # Mark the board
             self.board[p.board_location] = p
+
+        if custom_fen:
+            print("Using custom FEN!")
+            # Load FEN stuff
+            fen = tuple(self.game.fen.split(" "))
+
+            # Check castling
+            if fen[2] != "-":
+                # Castling is available
+                print("Castling available!")
+
+                # Figure out who can castle where
+                for char in fen[2]:
+                    if char == "K":
+                        # White can castle kingside
+                        self.board[(7, 7)].has_moved = False
+                        self.board[(7, 4)].has_moved = False
+                    elif char == "Q":
+                        # White can castle queenside
+                        self.board[(7, 0)].has_moved = False
+                        self.board[(7, 4)].has_moved = False
+                    elif char == "k":
+                        # Black can castle kingside
+                        self.board[(0, 7)].has_moved = False
+                        self.board[(0, 4)].has_moved = False
+                        pass
+                    elif char == "q":
+                        # Black can castle queenside
+                        self.board[(0, 0)].has_moved = False
+                        self.board[(0, 4)].has_moved = False
+                        pass
+                    else:
+                        print("FEN part 3 Error! {}".format(fen[2]))
+                        exit(1)
+            # Check en passant
+            if fen[3] != "-":
+                # A piece can move en passant
+                print("En Passant available!")
 
         print("Initialization done")
 
