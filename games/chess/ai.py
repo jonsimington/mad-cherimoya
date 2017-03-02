@@ -165,6 +165,12 @@ class AI(BaseAI):
     def rank_file_to_board_loc(rank_file):
         return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
 
+    def is_in_check_after_move(self, moved_piece, new_board_location):
+        # Check: When the king is able to be attacked by any opposing piece
+        # IE: If there is a move the opponent can make that would end up where the king is
+        # IE: is king_position in valid_opponent_moves
+        pass
+
     def valid_moves_for_piece(self, piece):
         # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
         valid_moves = set()
