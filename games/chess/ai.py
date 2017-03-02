@@ -197,6 +197,9 @@ class AI(BaseAI):
 
                     if self.is_valid(piece, (r, c)):
                         valid_moves.add((str(piece), AI.board_loc_to_rank_file((r, c))))
+                    else:
+                        # If it's invalid for a certain step, certainly all subsequent steps will be invalid
+                        break
         # Take care of any extra moves
         for m in extra_moves:
             if self.is_valid(piece, m):
