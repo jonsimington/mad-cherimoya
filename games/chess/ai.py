@@ -50,6 +50,9 @@ class AI(BaseAI):
                 else:
                     # If the pawn is on rank 7
                     p.has_moved = p.board_location[0] != 1
+            if piece.type == PieceType.KING:
+                # Set a special variable for the king
+                self.king_board_location = piece.board_location
 
             # Add to the dictionary
             self.pieces[str(p)] = p
@@ -222,6 +225,10 @@ class AI(BaseAI):
 
         # Apply that move and see if it crashes
         piece.game_piece.move(rank_file[1], rank_file[0])
+
+        # Update king_board_location if necessary
+        if piece.type == PieceType.KING:
+            self.king_board_location = move.board_location_to
 
         # Apply this move to the internal state
         # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
