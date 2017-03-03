@@ -177,6 +177,7 @@ class AI(BaseAI):
 
         if len(self.game.moves) > 0:
             # TODO: Set the en passant enemy variable
+            # TODO: Handle piece promotion
             # Grab the previous move
             m = self.game.moves[-1]
             enemy_piece = m.piece
