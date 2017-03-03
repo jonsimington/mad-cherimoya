@@ -373,6 +373,7 @@ class AI(BaseAI):
 
     def valid_moves_for_piece(self, piece):
         # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
+        # TODO: Do a check to see if this new state is in check
         valid_moves = set()
         extra_moves = []
         if piece.type == PieceType.PAWN:
