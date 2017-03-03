@@ -377,13 +377,21 @@ class AI(BaseAI):
                                 return True
         return False
 
-    def is_in_check_after_move(self, moved_piece, new_board_location):
-        # Check: When the king is able to be attacked by any opposing piece
-        # IE: If there is a move the opponent can make that would end up where the king is
-        # IE: is king_position in valid_opponent_moves
-        pass
+    def is_in_check_after_move(self, move, state):
+        new_state = AI.state_after_move(state, move)
 
-    def state_after_move(self, state, move):
+        in_check = self.is_board_location_under_attack(new_state, move.board_location_to, self.player.opponent.color)
+
+        print("If {} moves from {} -> {}, is the King ({}) in check? {}".format(move.piece_moved_id,
+                                                                                move.board_location_from,
+                                                                                move.board_location_to,
+                                                                                state.king_board_location,
+                                                                                in_check))
+
+        return in_check
+
+    @staticmethod
+    def state_after_move(state, move):
         # Copy the state
         # TODO: Maybe only copy the piece that moves?
         new_board = {}
@@ -391,16 +399,16 @@ class AI(BaseAI):
         new_enemy_pieces = {}
         new_state = ChessState()
 
-        for key, value in state.pieces:
+        for key, value in state.pieces.items():
             new_pieces[key] = AI.copy_piece(value)
 
-        for key, value in state.enemy_pieces:
+        for key, value in state.enemy_pieces.items():
             new_enemy_pieces[key] = AI.copy_piece(value)
 
-        for p in new_pieces:
+        for p in new_pieces.values():
             new_board[p.board_location] = p
 
-        for p in new_enemy_pieces:
+        for p in new_enemy_pieces.values():
             new_board[p.board_location] = p
 
         new_state.board = new_board
@@ -435,6 +443,8 @@ class AI(BaseAI):
 
         # Reset the en passant enemy because regardless of whether or not we captured it, en passant no longer exists
         new_state.en_passant_enemy = None
+
+        return new_state
 
     @staticmethod
     def copy_piece(piece):
@@ -492,14 +502,16 @@ class AI(BaseAI):
                     m.board_location_to = r, c
 
                     if self.is_valid(m, state):
-                        valid_moves.add(m)
+                        if not self.is_in_check_after_move(m, state):
+                            valid_moves.add(m)
                     else:
                         # If it's invalid for a certain step, certainly all subsequent steps will be invalid
                         break
         # Take care of any extra moves
         for m in extra_moves:
             if self.is_valid(m, state):
-                valid_moves.add(m)
+                if not self.is_in_check_after_move(m, state):
+                    valid_moves.add(m)
 
         return valid_moves
 
