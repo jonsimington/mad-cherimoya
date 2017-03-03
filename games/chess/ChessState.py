@@ -5,5 +5,6 @@ class ChessState:
         self.enemy_pieces = None
         self.en_passant_enemy = None
         self.king_board_location = None
+        self.fen_string = None
 
 
