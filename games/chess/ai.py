@@ -222,8 +222,14 @@ class AI(BaseAI):
 
         # Apply this move to the internal state
         # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
+        # TODO: Remove the captured piece (if there is one) from the opponent dictionary
         del self.board[piece.board_location]
         piece.board_location = AI.rank_file_to_board_loc(rank_file)
+
+        if piece.board_location in self.board.keys():
+            # There was something there, grab its id then remove it
+            del self.enemy_pieces[self.board[piece.board_location]]
+
         piece.rank_file = rank_file
         self.board[piece.board_location] = piece
         piece.has_moved = True
