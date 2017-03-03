@@ -424,7 +424,13 @@ class AI(BaseAI):
         if not (0 <= r < 8 and 0 <= c < 8):
             return False
 
-        elif piece.type == PieceType.PAWN:
+        print("Seeing if we can move {} from {} -> {}".format(
+            move.piece_moved_id, move.board_location_from, move.board_location_to))
+        print("Is the space we're trying to move to under attack from {}? {}".format(
+            self.player.opponent.color, self.is_board_location_under_attack(move.board_location_to,
+                                                                            self.player.opponent.color)))
+
+        if piece.type == PieceType.PAWN:
             # Negate rank direction to fit my coordinate system
             delta_row = move.board_location_to[0] - piece.board_location[0]
             if delta_row / abs(delta_row) != -self.player.rank_direction:
