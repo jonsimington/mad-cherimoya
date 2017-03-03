@@ -264,6 +264,10 @@ class AI(BaseAI):
     def rank_file_to_board_loc(rank_file):
         return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
 
+    def is_space_under_attack(self, space, player_color):
+        # Radiates out from every valid direction and checks for pieces that can make it to the given space in 1 turn
+        pass
+
     def is_in_check_after_move(self, moved_piece, new_board_location):
         # Check: When the king is able to be attacked by any opposing piece
         # IE: If there is a move the opponent can make that would end up where the king is
