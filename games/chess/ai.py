@@ -5,6 +5,7 @@ from games.chess.ChessPiece import ChessPiece
 from games.chess.PieceType import PieceType
 from games.chess.ChessMove import ChessMove
 from games.chess.MoveType import MoveType
+from games.chess.ChessState import ChessState
 import random
 
 
@@ -29,12 +30,12 @@ class AI(BaseAI):
         custom_fen = self.game.fen != "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
         # Reference pieces by id
-        self.pieces = {}
-        self.enemy_pieces = {}
+        pieces = {}
+        enemy_pieces = {}
 
         # Reference pieces by location
-        self.board = {}
-        self.en_passant_enemy = None
+        board = {}
+        en_passant_enemy = None
 
         # Load our pieces
         for piece in self.player.pieces:
@@ -52,13 +53,13 @@ class AI(BaseAI):
                     p.has_moved = p.board_location[0] != 1
             if piece.type == PieceType.KING:
                 # Set a special variable for the king
-                self.king_board_location = piece.board_location
+                king_board_location = piece.board_location
 
             # Add to the dictionary
-            self.pieces[str(p)] = p
+            pieces[str(p)] = p
 
             # Mark the board
-            self.board[p.board_location] = p
+            board[p.board_location] = p
 
         # Load enemy pieces
         for piece in self.player.opponent.pieces:
@@ -76,10 +77,10 @@ class AI(BaseAI):
                     p.has_moved = p.board_location[0] != 1
 
             # Add to the dictionary
-            self.enemy_pieces[str(p)] = p
+            enemy_pieces[str(p)] = p
 
             # Mark the board
-            self.board[p.board_location] = p
+            board[p.board_location] = p
 
         if custom_fen:
             print("Using custom FEN!")
@@ -95,21 +96,21 @@ class AI(BaseAI):
                 for char in fen[2]:
                     if char == "K":
                         # White can castle kingside
-                        self.board[(7, 7)].has_moved = False
-                        self.board[(7, 4)].has_moved = False
+                        board[(7, 7)].has_moved = False
+                        board[(7, 4)].has_moved = False
                     elif char == "Q":
                         # White can castle queenside
-                        self.board[(7, 0)].has_moved = False
-                        self.board[(7, 4)].has_moved = False
+                        board[(7, 0)].has_moved = False
+                        board[(7, 4)].has_moved = False
                     elif char == "k":
                         # Black can castle kingside
-                        self.board[(0, 7)].has_moved = False
-                        self.board[(0, 4)].has_moved = False
+                        board[(0, 7)].has_moved = False
+                        board[(0, 4)].has_moved = False
                         pass
                     elif char == "q":
                         # Black can castle queenside
-                        self.board[(0, 0)].has_moved = False
-                        self.board[(0, 4)].has_moved = False
+                        board[(0, 0)].has_moved = False
+                        board[(0, 4)].has_moved = False
                         pass
                     else:
                         print("FEN part 3 Error! {}".format(fen[2]))
@@ -127,16 +128,25 @@ class AI(BaseAI):
                     if self.player.color != "Black":
                         # It's an enemy piece
                         piece_loc = loc[0] + 1, loc[1]
-                        self.en_passant_enemy = self.board[piece_loc], loc
+                        en_passant_enemy = board[piece_loc], loc
                 else:
                     # It's a white piece
                     if self.player.color != "White":
                         # It's an enemy piece
                         piece_loc = loc[0] - 1, loc[1]
-                        self.en_passant_enemy = self.board[piece_loc], loc
+                        en_passant_enemy = board[piece_loc], loc
 
-                if self.en_passant_enemy is not None:
+                if en_passant_enemy is not None:
                     print("There is an enemy who may be able to be captured en passant")
+
+        # Create our initial state
+        self.current_state = ChessState()
+        self.current_state.board = board
+        self.current_state.pieces = pieces
+        self.current_state.enemy_pieces = enemy_pieces
+        self.current_state.en_passant_enemy = en_passant_enemy
+        self.current_state.king_board_location = king_board_location
+        self.current_state.fen_string = self.game.fen
 
         print("Initialization done")
 
