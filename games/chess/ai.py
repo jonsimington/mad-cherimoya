@@ -383,6 +383,73 @@ class AI(BaseAI):
         # IE: is king_position in valid_opponent_moves
         pass
 
+    def state_after_move(self, state, move):
+        # Copy the state
+        # TODO: Maybe only copy the piece that moves?
+        new_board = {}
+        new_pieces = {}
+        new_enemy_pieces = {}
+        new_state = ChessState()
+
+        for key, value in state.pieces:
+            new_pieces[key] = AI.copy_piece(value)
+
+        for key, value in state.enemy_pieces:
+            new_enemy_pieces[key] = AI.copy_piece(value)
+
+        for p in new_pieces:
+            new_board[p.board_location] = p
+
+        for p in new_enemy_pieces:
+            new_board[p.board_location] = p
+
+        new_state.board = new_board
+        new_state.pieces = new_pieces
+        new_state.enemy_pieces = new_enemy_pieces
+
+        if state.en_passant_enemy is not None:
+            new_state.en_passant_enemy = new_state.enemy_pieces[str(state.en_passant_enemy)]
+
+        new_state.king_board_location = state.king_board_location
+
+        # Apply the move
+        piece = new_state.pieces[move.piece_moved_id]
+
+        # Update king_board_location if necessary
+        if piece.type == PieceType.KING:
+            new_state.king_board_location = move.board_location_to
+
+        # Apply this move to the internal state
+        # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
+        # TODO: Remove the captured piece (if there is one) from the opponent dictionary
+        del new_state.board[piece.board_location]
+        piece.board_location = move.board_location_to
+
+        if move.piece_captured_id is not None:
+            # There was something there, grab its id then remove it
+            del new_state.enemy_pieces[move.piece_captured_id]
+
+        piece.rank_file = AI.board_loc_to_rank_file(move.board_location_to)
+        new_state.board[piece.board_location] = piece
+        piece.has_moved = True
+
+        # Reset the en passant enemy because regardless of whether or not we captured it, en passant no longer exists
+        new_state.en_passant_enemy = None
+
+    @staticmethod
+    def copy_piece(piece):
+        new_piece = ChessPiece()
+        new_piece.id = piece.id
+        new_piece.type = piece.type
+        new_piece.board_location = piece.board_location
+        new_piece.rank_file = piece.rank_file
+        new_piece.has_moved = piece.has_moved
+        new_piece.captured = piece.captured
+        new_piece.color = piece.color
+        new_piece.game_piece = piece.game_piece
+
+        return new_piece
+
     def valid_moves_for_piece(self, piece, state):
         # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
         # TODO: Do a check to see if this new state is in check
