@@ -211,19 +211,21 @@ class AI(BaseAI):
                 print("Enemy {} captured our piece {}!".format(enemy_piece_id, captured_piece_id))
 
                 # Removed the captured piece from the board and our pieces dict
-                del self.board[AI.rank_file_to_board_loc((m.to_rank, m.to_file))]
-                del self.pieces[captured_piece_id]
+                del self.current_state.board[AI.rank_file_to_board_loc((m.to_rank, m.to_file))]
+                del self.current_state.pieces[captured_piece_id]
 
             # Remove enemy piece's old position
-            del self.board[AI.rank_file_to_board_loc((m.from_rank, m.from_file))]
+            del self.current_state.board[AI.rank_file_to_board_loc((m.from_rank, m.from_file))]
 
             # Set the enemy piece's new position
-            self.board[AI.rank_file_to_board_loc((m.to_rank, m.to_file))] = self.enemy_pieces[enemy_piece_id]
+            self.current_state.board[AI.rank_file_to_board_loc((m.to_rank, m.to_file))] = \
+                self.current_state.enemy_pieces[enemy_piece_id]
 
             # Update the enemy_pieces dict
-            self.enemy_pieces[enemy_piece_id].board_location = AI.rank_file_to_board_loc((m.to_rank, m.to_file))
-            self.enemy_pieces[enemy_piece_id].rank_file = m.to_rank, m.to_file
-            self.enemy_pieces[enemy_piece_id].has_moved = True
+            self.current_state.enemy_pieces[enemy_piece_id].board_location = \
+                AI.rank_file_to_board_loc((m.to_rank, m.to_file))
+            self.current_state.enemy_pieces[enemy_piece_id].rank_file = m.to_rank, m.to_file
+            self.current_state.enemy_pieces[enemy_piece_id].has_moved = True
 
         # 3) print how much time remaining this AI has to calculate moves
         print("Time Remaining: " + str(self.player.time_remaining) + " ns")
@@ -231,31 +233,31 @@ class AI(BaseAI):
         # Generate a random, valid move
         move = self.random_valid_move()
         rank_file = AI.board_loc_to_rank_file(move.board_location_to)
-        piece = self.pieces[move.piece_moved_id]
+        piece = self.current_state.pieces[move.piece_moved_id]
 
         # Apply that move and see if it crashes
         piece.game_piece.move(rank_file[1], rank_file[0])
 
         # Update king_board_location if necessary
         if piece.type == PieceType.KING:
-            self.king_board_location = move.board_location_to
+            self.current_state.king_board_location = move.board_location_to
 
         # Apply this move to the internal state
         # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
         # TODO: Remove the captured piece (if there is one) from the opponent dictionary
-        del self.board[piece.board_location]
+        del self.current_state.board[piece.board_location]
         piece.board_location = move.board_location_to
 
         if move.piece_captured_id is not None:
             # There was something there, grab its id then remove it
-            del self.enemy_pieces[move.piece_captured_id]
+            del self.current_state.enemy_pieces[move.piece_captured_id]
 
         piece.rank_file = rank_file
-        self.board[piece.board_location] = piece
+        self.current_state.board[piece.board_location] = piece
         piece.has_moved = True
 
         # Reset the en passant enemy because regardless of whether or not we captured it, en passant no longer exists
-        self.en_passant_enemy = None
+        self.current_state.en_passant_enemy = None
 
         if move.en_passant:
             print("En Passant capture! {} moved from {} -> {} to capture {}!".format(move.piece_moved_id,
