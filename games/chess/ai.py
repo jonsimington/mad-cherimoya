@@ -3,6 +3,7 @@
 from joueur.base_ai import BaseAI
 from games.chess.ChessPiece import ChessPiece
 from games.chess.PieceType import PieceType
+from games.chess.ChessMove import ChessMove
 import random
 
 
@@ -213,9 +214,9 @@ class AI(BaseAI):
         print("Time Remaining: " + str(self.player.time_remaining) + " ns")
 
         # Generate a random, valid move
-        piece_id, rank_file = self.random_valid_move()
-        
-        piece = self.pieces[piece_id]
+        move = self.random_valid_move()
+        rank_file = AI.board_loc_to_rank_file(move.board_location_to)
+        piece = self.pieces[move.piece_moved_id]
 
         # Apply that move and see if it crashes
         piece.game_piece.move(rank_file[1], rank_file[0])
@@ -224,11 +225,11 @@ class AI(BaseAI):
         # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
         # TODO: Remove the captured piece (if there is one) from the opponent dictionary
         del self.board[piece.board_location]
-        piece.board_location = AI.rank_file_to_board_loc(rank_file)
+        piece.board_location = move.board_location_to
 
-        if piece.board_location in self.board.keys():
+        if move.piece_captured_id is not None:
             # There was something there, grab its id then remove it
-            del self.enemy_pieces[self.board[piece.board_location]]
+            del self.enemy_pieces[move.piece_captured_id]
 
         piece.rank_file = rank_file
         self.board[piece.board_location] = piece
@@ -236,6 +237,12 @@ class AI(BaseAI):
 
         # Reset the en passant enemy because regardless of whether or not we captured it, en passant no longer exists
         self.en_passant_enemy = None
+
+        if move.en_passant:
+            print("En Passant capture! {} moved from {} -> {} to capture {}!".format(move.piece_moved_id,
+                                                                                     move.board_location_from,
+                                                                                     move.board_location_to,
+                                                                                     move.piece_captured_id))
 
         return True  # to signify we are done with our turn.
 
@@ -268,12 +275,16 @@ class AI(BaseAI):
         extra_moves = []
         if piece.type == PieceType.PAWN:
             r, c = piece.board_location
-            # TODO: En Passant
 
             # Two space pawn movement
             if not piece.has_moved:
                 # Move it two spaces
-                extra_moves.append((r + -self.player.rank_direction * 2, c))
+                m = ChessMove()
+                m.piece_moved_id = str(piece)
+                m.board_location_from = r, c
+                m.board_location_to = (r + -self.player.rank_direction * 2, c)
+
+                extra_moves.append(m)
 
             # TODO: Promotion
             pass
@@ -293,20 +304,26 @@ class AI(BaseAI):
                     r += length * movement_tuple[0]
                     c += length * movement_tuple[1]
 
-                    if self.is_valid(piece, (r, c)):
-                        valid_moves.add((str(piece), AI.board_loc_to_rank_file((r, c))))
+                    m = ChessMove()
+                    m.piece_moved_id = str(piece)
+                    m.board_location_from = piece.board_location
+                    m.board_location_to = r, c
+
+                    if self.is_valid(m):
+                        valid_moves.add(m)
                     else:
                         # If it's invalid for a certain step, certainly all subsequent steps will be invalid
                         break
         # Take care of any extra moves
         for m in extra_moves:
-            if self.is_valid(piece, m):
-                valid_moves.add((str(piece), AI.board_loc_to_rank_file(m)))
+            if self.is_valid(m):
+                valid_moves.add(m)
 
         return valid_moves
 
-    def is_valid(self, piece, board_location):
-        r, c = board_location
+    def is_valid(self, move):
+        piece = self.pieces[move.piece_moved_id]
+        r, c = move.board_location_to
 
         # Common sense check; is this space even on the board?
         if not (0 <= r < 8 and 0 <= c < 8):
@@ -314,12 +331,12 @@ class AI(BaseAI):
 
         elif piece.type == PieceType.PAWN:
             # Negate rank direction to fit my coordinate system
-            delta_row = board_location[0] - piece.board_location[0]
+            delta_row = move.board_location_to[0] - piece.board_location[0]
             if delta_row / abs(delta_row) != -self.player.rank_direction:
                 # Pawns can't move backwards
                 return False
 
-            spaces_moved = abs(board_location[0] - piece.board_location[0])
+            spaces_moved = abs(move.board_location_to[0] - piece.board_location[0])
             if spaces_moved > 2:
                 # Pawn can move at most 2 spaces
                 return False
@@ -331,35 +348,39 @@ class AI(BaseAI):
 
                 # If both spaces directly in front of the pawn aren't occupied
                 return (piece.board_location[0] + delta_row / abs(delta_row), piece.board_location[1]) not in \
-                       self.board.keys() and board_location not in self.board.keys()
+                       self.board.keys() and move.board_location_to not in self.board.keys()
 
-            if board_location[1] != piece.board_location[1]:
+            if move.board_location_to[1] != piece.board_location[1]:
                 # It's moving diagonally
 
                 # En Passant?
                 if self.en_passant_enemy is not None:
                     # Are we moving there?
-                    if board_location == self.en_passant_enemy[1]:
+                    if move.board_location_to == self.en_passant_enemy[1]:
+                        move.piece_captured_id = str(self.en_passant_enemy[0])
+                        move.en_passant = True
                         return True
 
-                if board_location in self.board.keys():
+                if move.board_location_to in self.board.keys():
                     # Something is there
-                    other_piece = self.board[board_location]
+                    other_piece = self.board[move.board_location_to]
 
                     if other_piece.color != piece.color:
                         # Get 'em
+                        move.piece_captured_id = str(other_piece)
                         return True
 
             else:  # It's moving forward
                 # Is there something there?
-                return board_location not in self.board.keys()
+                return move.board_location_to not in self.board.keys()
         # Knights don't have to move through their spaces
         elif piece.type == PieceType.KNIGHT:
             # Check if target location is empty or contains an enemy
-            if board_location in self.board.keys():
+            if move.board_location_to in self.board.keys():
                 # Check to see if the space is an enemy or not
-                if piece.color != self.board[board_location].color:
+                if piece.color != self.board[move.board_location_to].color:
                     # Capture an enemy
+                    move.piece_captured_id = str(self.board[move.board_location_to])
                     return True
                 else:
                     return False
@@ -370,15 +391,16 @@ class AI(BaseAI):
             # Some other piece
 
             # Is the target location occupied?
-            if board_location in self.board.keys():
+            if move.board_location_to in self.board.keys():
                 # Is it an ally?
-                piece_on_target_loc = self.board[board_location]
+                piece_on_target_loc = self.board[move.board_location_to]
 
                 if piece_on_target_loc.color == piece.color:
+                    move.piece_captured_id = str(piece_on_target_loc)
                     return False
 
             # Check every space between it
-            r1, c1 = board_location
+            r1, c1 = move.board_location_to
             r2, c2 = piece.board_location
             movement_tuple = r1 - r2, c1 - c2
 
@@ -389,7 +411,7 @@ class AI(BaseAI):
             # The number of spaces we're moving
             delta = max(abs(r), abs(c))
 
-            for i in range(1, delta + 1, 1):
+            for i in range(1, delta, 1):
                 r, c = piece.board_location
 
                 r += i * movement_tuple[0]
@@ -398,6 +420,10 @@ class AI(BaseAI):
                 # If that space is occupied
                 if (r, c) in self.board.keys():
                     return False
+
+            # If there's something to capture at the end of this journey
+            if move.board_location_to in self.board.keys():
+                move.piece_captured_id = str(self.board[move.board_location_to])
 
             return True
 
