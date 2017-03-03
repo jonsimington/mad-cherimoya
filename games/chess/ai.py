@@ -4,6 +4,7 @@ from joueur.base_ai import BaseAI
 from games.chess.ChessPiece import ChessPiece
 from games.chess.PieceType import PieceType
 from games.chess.ChessMove import ChessMove
+from games.chess.MoveType import MoveType
 import random
 
 
@@ -264,9 +265,98 @@ class AI(BaseAI):
     def rank_file_to_board_loc(rank_file):
         return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
 
-    def is_space_under_attack(self, space, player_color):
-        # Radiates out from every valid direction and checks for pieces that can make it to the given space in 1 turn
-        pass
+    def is_board_location_under_attack(self, board_location, attacking_player_color):
+        # Sanity check - is the location on the board?
+        if not (0 <= board_location[0] < 8 and 0 <= board_location[1] < 8):
+            return False
+
+        # Radiates out from every valid direction and checks for pieces that can make it to the given location in 1 turn
+        for move in MoveType:
+            for movement_tuple in move.movement_tuples:
+                if move != MoveType.L_SHAPED:
+                    for i in range(1, 8, 1):
+                        r, c = board_location
+
+                        # Check each board location
+                        r += i * movement_tuple[0]
+                        c += i * movement_tuple[1]
+
+                        new_loc = r, c
+
+                        # Is it in bounds?
+                        if 0 <= r < 8 and 0 <= c < 8:
+
+                            # Is it occupied?
+                            if new_loc in self.board.keys():
+
+                                occupying_piece = self.board[new_loc]
+
+                                # Is it an enemy piece?
+                                if occupying_piece.color == attacking_player_color:
+                                    # Deal with pawns not being able to attack backwards
+                                    if occupying_piece.type == PieceType.PAWN:
+                                        if move == MoveType.DIAGONAL:
+                                            # Pawns can only move 1, so is it in range?
+                                            if i == 1:
+                                                # Grab the rank direction
+                                                if self.player.color == attacking_player_color:
+                                                    rank_dir = -self.player.rank_direction
+                                                else:
+                                                    rank_dir = -self.player.opponent.rank_direction
+
+                                                # Check if our piece is "in front of" the pawn
+                                                if occupying_piece.board_location[0] + rank_dir == board_location[0]:
+                                                    return True
+                                                else:
+                                                    # It can't hit us, but it is protecting us
+                                                    break
+                                            else:
+                                                # Out of range, still protects us
+                                                break
+                                        else:
+                                            # We ran in to a pawn blocking everything else
+                                            break
+
+                                    elif occupying_piece.type == PieceType.KNIGHT:
+                                        # We know we didn't find this through an L-shaped move, so we can ignore it
+                                        pass
+                                    else:
+                                        # Rook, Bishop, Queen, King
+                                        if move in occupying_piece.type.valid_moves and \
+                                                        i <= occupying_piece.type.num_spaces:
+                                            # The found piece can not only move in the direction we're looking,
+                                            # but also make it the number of steps we've counted in one turn
+                                            # TODO: Perhaps return which piece is threatening this location?
+                                            return True
+                                else:
+                                    # We're protected by one of our pieces
+                                    break
+
+                        else:
+                            # If we just went OOB, don't even bother continuing to go even more OOB
+                            break
+                else:
+                    # Check each board location
+                    r, c = board_location
+                    r += movement_tuple[0]
+                    c += movement_tuple[1]
+
+                    new_loc = r, c
+
+                    # Is it in bounds?
+                    if 0 <= r < 8 and 0 <= c < 8:
+
+                        # Is it occupied?
+                        if new_loc in self.board.keys():
+
+                            occupying_piece = self.board[new_loc]
+
+                            # Is it an enemy knight?
+                            if occupying_piece.color == attacking_player_color and \
+                                            occupying_piece.type == PieceType.KNIGHT:
+                                # There's an enemy knight in one of the L-shaped spots
+                                return True
+        return False
 
     def is_in_check_after_move(self, moved_piece, new_board_location):
         # Check: When the king is able to be attacked by any opposing piece
