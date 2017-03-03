@@ -221,6 +221,7 @@ class AI(BaseAI):
         piece.game_piece.move(rank_file[1], rank_file[0])
 
         # Apply this move to the internal state
+        # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
         del self.board[piece.board_location]
         piece.board_location = AI.rank_file_to_board_loc(rank_file)
         piece.rank_file = rank_file
@@ -330,27 +331,10 @@ class AI(BaseAI):
                 # It's moving diagonally
 
                 # En Passant?
-                if len(self.game.moves) > 0:
-                    # There was some previous move
-
-                    # If there is an adjacent piece
-                    if (piece.board_location[0], board_location[1]) in self.board.keys():
-                        pawn = self.board[(piece.board_location[0], board_location[1])]
-                        
-                        # If it's a pawn
-                        if pawn.type == PieceType.PAWN:
-                            
-                            # If it's an enemy
-                            if pawn.color != piece.color:
-                                
-                                # Check previous move
-                                move = self.game.moves[-1]
-
-                                # Did this piece move last turn?
-                                if str(pawn) == AI.create_id(move.piece):
-                                    # Is this the first time it moved?
-                                    # TODO: This
-                                    return True
+                if self.en_passant_enemy is not None:
+                    # Are we moving there?
+                    if board_location == self.en_passant_enemy[1]:
+                        return True
 
                 if board_location in self.board.keys():
                     # Something is there
