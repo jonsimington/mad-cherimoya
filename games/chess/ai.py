@@ -198,7 +198,23 @@ class AI(BaseAI):
 
             enemy_piece_id = AI.create_id(enemy_piece)
 
-            print("Opponent's Last Move: {} {} -> {}".format(enemy_piece_id, m.from_file + str(m.from_rank),
+            if m.promotion != "":
+                # A promotion on the other side occurred
+                if self.player.opponent.color == "White":
+                    pre_promotion_id = "P" + enemy_piece_id[1:]
+                else:
+                    pre_promotion_id = "p" + enemy_piece_id[1:]
+
+                p = self.current_state.enemy_pieces[pre_promotion_id]
+                p.type = PieceType[m.promotion.upper()]
+                del self.current_state.enemy_pieces[pre_promotion_id]
+                self.current_state.enemy_pieces[enemy_piece_id] = p
+
+                print("Opponent's Last Move: {} {} -> {}. Promoted to {}".format(
+                    pre_promotion_id, m.from_file + str(m.from_rank), m.to_file + str(m.to_rank), m.promotion))
+
+            else:
+                print("Opponent's Last Move: {} {} -> {}".format(enemy_piece_id, m.from_file + str(m.from_rank),
                                                              m.to_file + str(m.to_rank)))
 
             # Deal with capture
@@ -236,28 +252,9 @@ class AI(BaseAI):
         piece = self.current_state.pieces[move.piece_moved_id]
 
         # Apply that move and see if it crashes
-        piece.game_piece.move(rank_file[1], rank_file[0])
+        piece.game_piece.move(rank_file[1], rank_file[0], move.promote_to)
 
-        # Update king_board_location if necessary
-        if piece.type == PieceType.KING:
-            self.current_state.king_board_location = move.board_location_to
-
-        # Apply this move to the internal state
-        # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
-        # TODO: Remove the captured piece (if there is one) from the opponent dictionary
-        del self.current_state.board[piece.board_location]
-        piece.board_location = move.board_location_to
-
-        if move.piece_captured_id is not None:
-            # There was something there, grab its id then remove it
-            del self.current_state.enemy_pieces[move.piece_captured_id]
-
-        piece.rank_file = rank_file
-        self.current_state.board[piece.board_location] = piece
-        piece.has_moved = True
-
-        # Reset the en passant enemy because regardless of whether or not we captured it, en passant no longer exists
-        self.current_state.en_passant_enemy = None
+        self.current_state = self.state_after_move(self.current_state, move)
 
         if move.en_passant:
             print("En Passant capture! {} moved from {} -> {} to capture {}!".format(move.piece_moved_id,
@@ -269,6 +266,7 @@ class AI(BaseAI):
 
     def random_valid_move(self, state):
         # TODO: Select a piece and print all legal moves for that piece
+        # TODO: Handle promotion
         valid_moves = set()
         # Iterate through each piece we own
         for key, piece in state.pieces.items():
@@ -458,6 +456,18 @@ class AI(BaseAI):
         del new_state.board[piece.board_location]
         piece.board_location = move.board_location_to
 
+        if piece.type == PieceType.PAWN and move.promote_to != "":
+            # Promotion occurred!
+
+            # Remove it from our piece dict
+            del new_state.pieces[str(piece)]
+
+            # Promote it
+            piece.type = PieceType[move.promote_to.upper()]
+
+            # Put it back
+            new_state.pieces[str(piece)] = piece
+
         if move.piece_captured_id is not None:
             # There was something there, grab its id then remove it
             del new_state.enemy_pieces[move.piece_captured_id]
@@ -502,9 +512,6 @@ class AI(BaseAI):
                 m.board_location_to = (r + -self.player.rank_direction * 2, c)
 
                 extra_moves.append(m)
-
-            # TODO: Promotion
-            pass
         elif piece == PieceType.KING:
             # TODO: Castling
             pass
@@ -528,7 +535,26 @@ class AI(BaseAI):
 
                     if self.is_valid(m, state):
                         if not self.is_in_check_after_move(m, state):
-                            valid_moves.add(m)
+                            if piece.type == PieceType.PAWN:
+                                # Check for promotion
+                                if (self.player.color == "White" and m.board_location_to[0] == 0) or \
+                                   (self.player.color == "Black" and m.board_location_to[0] == 7):
+                                    # White or Black pawn promoting
+                                    for piece_type in ["Queen", "Rook", "Bishop", "Knight"]:
+                                        new_move = ChessMove()
+                                        new_move.piece_moved_id = m.piece_moved_id
+                                        new_move.piece_captured_id = m.piece_captured_id
+                                        new_move.board_location_from = m.board_location_from
+                                        new_move.board_location_to = m.board_location_to
+                                        new_move.promote_to = piece_type
+                                        new_move.en_passant = m.en_passant
+                                        new_move.castling = m.castling
+
+                                        valid_moves.add(new_move)
+                                else:
+                                    valid_moves.add(m)
+                            else:
+                                valid_moves.add(m)
                     else:
                         # If it's invalid for a certain step, certainly all subsequent steps will be invalid
                         break
