@@ -396,7 +396,7 @@ class AI(BaseAI):
                                         # We know we didn't find this through an L-shaped move, so we can ignore it
                                         print("{} is protected by a knight at {}".format(
                                             board_location, occupying_piece.board_location))
-                                        pass
+                                        break
                                     else:
                                         # Rook, Bishop, Queen, King
                                         if move in occupying_piece.type.valid_moves and \
