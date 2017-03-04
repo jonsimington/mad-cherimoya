@@ -267,9 +267,12 @@ class AI(BaseAI):
 
                 print("Enemy {} captured our piece {}!".format(enemy_piece_id, captured_piece_id))
 
+                captured_piece = self.current_state.pieces[captured_piece_id]
+
                 # Removed the captured piece from the board and our pieces dict
-                del self.current_state.board[AI.rank_file_to_board_loc((m.to_rank, m.to_file))]
+                del self.current_state.board[captured_piece.board_location]
                 del self.current_state.pieces[captured_piece_id]
+                del captured_piece
 
             # Remove enemy piece's old position
             del self.current_state.board[AI.rank_file_to_board_loc((m.from_rank, m.from_file))]
