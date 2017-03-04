@@ -503,9 +503,45 @@ class AI(BaseAI):
         if piece.type == PieceType.KING:
             new_state.king_board_location = move.board_location_to
 
+            delta_file = move.board_location_to[1] - move.board_location_from[1]
+            rank = move.board_location_from[0]
+            if delta_file == 2:
+                # Kingside castle
+
+                # Grab the rook we know is at file h
+                rook = new_state.board[(rank, 7)]
+
+                # Castle it internally
+                rook.board_location = rank, 5
+                rook.rank_file = AI.board_loc_to_rank_file(rook.board_location)
+
+                # Remove it from the board
+                del new_state.board[(rank, 7)]
+
+                # Put it in its new location
+                new_state.board[rook.board_location] = rook
+                del rook
+            elif delta_file == -2:
+                # Queenside castle
+
+                # Grab the rook we know is at file a
+                rook = new_state.board[(rank, 0)]
+
+                # Castle it internally
+                rook.board_location = rank, 3
+                rook.rank_file = AI.board_loc_to_rank_file(rook.board_location)
+
+                # Remove it from the board
+                del new_state.board[(rank, 0)]
+
+                # Put it in its new location
+                new_state.board[rook.board_location] = rook
+                del rook
+
         # Apply this move to the internal state
         # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
         # TODO: Remove the captured piece (if there is one) from the opponent dictionary
+        # TODO: Handle en passant
         del new_state.board[piece.board_location]
         piece.board_location = move.board_location_to
 
@@ -523,6 +559,10 @@ class AI(BaseAI):
 
         if move.piece_captured_id is not None:
             # There was something there, grab its id then remove it
+
+            # Wipe it from the board (takes into account the en passant capture where you don't move onto the space
+            # of the piece you capture
+            del new_state.board[new_state.enemy_pieces[move.piece_captured_id].board_location]
             del new_state.enemy_pieces[move.piece_captured_id]
 
         piece.rank_file = AI.board_loc_to_rank_file(move.board_location_to)
@@ -567,7 +607,20 @@ class AI(BaseAI):
                 extra_moves.append(m)
         elif piece == PieceType.KING:
             # TODO: Castling
-            pass
+            if not piece.has_moved:
+                # King hasn't moved, good
+
+                # Let the move checker mess with the details
+                for m_t in [(0, -2),(0, 2)]:
+                    # Throw them in the extra moves list
+                    r, c = piece.board_location
+
+                    m = ChessMove()
+                    m.piece_moved_id = str(piece)
+                    m.board_location_from = piece.board_location
+                    m.board_location_to = r, c + m_t[1]
+
+                    extra_moves.append(m)
 
         # Iterate through possible move types
         for move_type in piece.type.valid_moves:
