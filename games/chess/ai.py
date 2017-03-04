@@ -283,6 +283,7 @@ class AI(BaseAI):
         return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
 
     def is_board_location_under_attack(self, state, board_location, attacking_player_color):
+        print("Checking if {} is under attack by {}".format(board_location, attacking_player_color))
         attacking_piece_id_location_tuples = set()
         # Sanity check - is the location on the board?
         if not (0 <= board_location[0] < 8 and 0 <= board_location[1] < 8):
@@ -292,8 +293,10 @@ class AI(BaseAI):
         # Radiates out from every valid direction and checks for pieces that can make it to the given location in 1 turn
         for move in MoveType:
             for movement_tuple in move.movement_tuples:
+                print("{} {}".format(move.name, movement_tuple))
                 if move != MoveType.L_SHAPED:
                     for i in range(1, 8, 1):
+                        print("i = {}".format(i))
                         r, c = board_location
 
                         # Check each board location
@@ -361,6 +364,12 @@ class AI(BaseAI):
                                                 (str(occupying_piece), occupying_piece.board_location))
                                             print("{} is under attack by a {} at {}".format(
                                                 board_location, str(occupying_piece), occupying_piece.board_location))
+                                            break
+                                        else:
+                                            # That piece can't get us
+                                            print("Protected by {} at {} who can't get us".format(
+                                                str(occupying_piece), occupying_piece.board_location))
+                                            break
                                 else:
                                     # We're protected by one of our pieces
                                     print("Our piece {} is protecting {}".format(str(occupying_piece), board_location))
@@ -368,7 +377,7 @@ class AI(BaseAI):
 
                         else:
                             # If we just went OOB, don't even bother continuing to go even more OOB
-                            print("Stopped going out of bounds")
+                            print("Stopped going out of bounds: {}".format(new_loc))
                             break
                 else:
                     # Check each board location
@@ -405,7 +414,7 @@ class AI(BaseAI):
         print("If {} moves from {} -> {}, is the King ({}) in check? {}".format(move.piece_moved_id,
                                                                                 move.board_location_from,
                                                                                 move.board_location_to,
-                                                                                state.king_board_location,
+                                                                                new_state.king_board_location,
                                                                                 len(in_check_set) != 0))
 
         if len(in_check_set) != 0:
