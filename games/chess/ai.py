@@ -285,9 +285,11 @@ class AI(BaseAI):
         return 8 - rank_file[0], ord(rank_file[1]) - ord("a")
 
     def is_board_location_under_attack(self, state, board_location, attacking_player_color):
+        attacking_piece_id_location_tuples = set()
         # Sanity check - is the location on the board?
         if not (0 <= board_location[0] < 8 and 0 <= board_location[1] < 8):
-            return False
+            print("Invalid board location")
+            return attacking_piece_id_location_tuples
 
         # Radiates out from every valid direction and checks for pieces that can make it to the given location in 1 turn
         for move in MoveType:
@@ -325,19 +327,30 @@ class AI(BaseAI):
 
                                                 # Check if our piece is "in front of" the pawn
                                                 if occupying_piece.board_location[0] + rank_dir == board_location[0]:
-                                                    return True
+                                                    print("{} is under attack by a pawn at {}".format(
+                                                        board_location, occupying_piece.board_location))
+                                                    attacking_piece_id_location_tuples.add(
+                                                        (str(occupying_piece), occupying_piece.board_location))
                                                 else:
                                                     # It can't hit us, but it is protecting us
+                                                    print("{} is protected by a pawn at {}".format(
+                                                        board_location, occupying_piece.board_location))
                                                     break
                                             else:
                                                 # Out of range, still protects us
+                                                print("{} is protected by a pawn at {}".format(
+                                                    board_location, occupying_piece.board_location))
                                                 break
                                         else:
                                             # We ran in to a pawn blocking everything else
+                                            print("{} is protected by a pawn at {}".format(
+                                                board_location, occupying_piece.board_location))
                                             break
 
                                     elif occupying_piece.type == PieceType.KNIGHT:
                                         # We know we didn't find this through an L-shaped move, so we can ignore it
+                                        print("{} is protected by a knight at {}".format(
+                                            board_location, occupying_piece.board_location))
                                         pass
                                     else:
                                         # Rook, Bishop, Queen, King
@@ -346,13 +359,18 @@ class AI(BaseAI):
                                             # The found piece can not only move in the direction we're looking,
                                             # but also make it the number of steps we've counted in one turn
                                             # TODO: Perhaps return which piece is threatening this location?
-                                            return True
+                                            attacking_piece_id_location_tuples.add(
+                                                (str(occupying_piece), occupying_piece.board_location))
+                                            print("{} is under attack by a {} at {}".format(
+                                                board_location, str(occupying_piece), occupying_piece.board_location))
                                 else:
                                     # We're protected by one of our pieces
+                                    print("Our piece {} is protecting {}".format(str(occupying_piece), board_location))
                                     break
 
                         else:
                             # If we just went OOB, don't even bother continuing to go even more OOB
+                            print("Stopped going out of bounds")
                             break
                 else:
                     # Check each board location
@@ -374,21 +392,28 @@ class AI(BaseAI):
                             if occupying_piece.color == attacking_player_color and \
                                             occupying_piece.type == PieceType.KNIGHT:
                                 # There's an enemy knight in one of the L-shaped spots
-                                return True
-        return False
+                                print("Enemy knight at {} threatens{}".format(
+                                    occupying_piece.board_location, board_location))
+                                attacking_piece_id_location_tuples.add(
+                                    (str(occupying_piece), occupying_piece.board_location))
+        return attacking_piece_id_location_tuples
 
     def is_in_check_after_move(self, move, state):
         new_state = AI.state_after_move(state, move)
 
-        in_check = self.is_board_location_under_attack(new_state, move.board_location_to, self.player.opponent.color)
+        in_check_set = self.is_board_location_under_attack(new_state, new_state.king_board_location,
+                                                           self.player.opponent.color)
 
         print("If {} moves from {} -> {}, is the King ({}) in check? {}".format(move.piece_moved_id,
                                                                                 move.board_location_from,
                                                                                 move.board_location_to,
                                                                                 state.king_board_location,
-                                                                                in_check))
+                                                                                len(in_check_set) != 0))
 
-        return in_check
+        if len(in_check_set) != 0:
+            print(in_check_set)
+
+        return len(in_check_set) != 0
 
     @staticmethod
     def state_after_move(state, move):
@@ -523,11 +548,11 @@ class AI(BaseAI):
         if not (0 <= r < 8 and 0 <= c < 8):
             return False
 
-        print("Seeing if we can move {} from {} -> {}".format(
+        """print("Seeing if we can move {} from {} -> {}".format(
             move.piece_moved_id, move.board_location_from, move.board_location_to))
         print("Is the space we're trying to move to under attack from {}? {}".format(
-            self.player.opponent.color, self.is_board_location_under_attack(state, move.board_location_to,
-                                                                            self.player.opponent.color)))
+            self.player.opponent.color, len(self.is_board_location_under_attack(state, move.board_location_to,
+                                                                            self.player.opponent.color)) != 0))"""
 
         if piece.type == PieceType.PAWN:
             # Negate rank direction to fit my coordinate system
