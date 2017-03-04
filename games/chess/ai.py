@@ -217,6 +217,47 @@ class AI(BaseAI):
                 print("Opponent's Last Move: {} {} -> {}".format(enemy_piece_id, m.from_file + str(m.from_rank),
                                                              m.to_file + str(m.to_rank)))
 
+            # Check if the opponent castled
+            if self.current_state.enemy_pieces[enemy_piece_id].type == PieceType.KING:
+                # Did they castle?
+                king_pos = self.current_state.enemy_pieces[enemy_piece_id].board_location
+                file_delta = ord(m.from_file) - ord(m.to_file)
+                if file_delta == 2:
+                    # Queenside Castle, move the rook to file D
+                    print("They castled Queenside!")
+
+                    # Grab the rook, which we know is in file A
+                    rook = self.current_state.board[(king_pos[0], 0)]
+
+                    # Update its internal position
+                    rook.board_location = king_pos[0], 3
+                    rook.rank_file = AI.board_loc_to_rank_file(rook.board_location)
+
+                    # Remove that board entry
+                    del self.current_state.board[(king_pos[0], 0)]
+
+                    # Move it
+                    self.current_state.board[rook.board_location] = rook
+                elif file_delta == -2:
+                    # Kingside Castle, move the rook to file F
+                    print("They castled Kingside!")
+
+                    # Grab the rook, which we know is in file H
+                    rook = self.current_state.board[(king_pos[0], 7)]
+
+                    # Update its internal position
+                    rook.board_location = king_pos[0], 5
+                    rook.rank_file = AI.board_loc_to_rank_file(rook.board_location)
+
+                    # Remove that board entry
+                    del self.current_state.board[(king_pos[0], 7)]
+
+                    # Move it
+                    self.current_state.board[rook.board_location] = rook
+                else:
+                    # They didn't castle, continue as normal
+                    pass
+
             # Deal with capture
             captured_piece = m.captured
 
