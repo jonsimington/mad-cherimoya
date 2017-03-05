@@ -321,7 +321,8 @@ class AI(BaseAI):
                                                                                      move.board_location_from,
                                                                                      move.board_location_to,
                                                                                      move.piece_captured_id))
-
+        elif move.castling:
+            print("We castled!")
         return True  # to signify we are done with our turn.
 
     def random_valid_move(self, state):
@@ -623,8 +624,10 @@ class AI(BaseAI):
                 extra_moves.append(m)
         elif piece == PieceType.KING:
             # TODO: Castling
-            if not piece.has_moved:
-                # King hasn't moved, good
+            if not piece.has_moved and \
+                    len(self.is_board_location_under_attack(state, piece.board_location, self.player.opponent.color)) \
+                            == 0:
+                # King hasn't moved and we aren't in check currently, good
 
                 # Let the move checker mess with the details
                 for m_t in [(0, -2),(0, 2)]:
@@ -760,6 +763,67 @@ class AI(BaseAI):
             else:
                 # Space is empty
                 return True
+        elif piece.type == PieceType.KING and not piece.has_moved and \
+            abs(move.board_location_from[1] - move.board_location_to[1]) == 2:
+            # Castling move
+            delta_file = move.board_location_from[1] - move.board_location_to[1]
+
+            if delta_file == -2:
+                # Kingside castle attempt
+
+                # Is there something at (rank, 7)?
+                if (move.board_location_from[0], 7) in state.board.keys():
+                    # Is it a rook?
+                    if state.board[(move.board_location_from[0], 7)].type == PieceType.ROOK:
+                        rook = state.board[(move.board_location_from[0], 7)]
+
+                        # Has it moved yet?
+                        if not rook.has_moved:
+                            # Castling will work in theory, just need to check intermediate squares
+                            square2 = move.board_location_to
+
+                            # Average the file values to get the middle
+                            square1 = rook.board_location[0], \
+                                      (move.board_location_to[1] + move.board_location_from[1]) / 2
+
+                            # Are the intermediate squares empty?
+                            if square1 not in state.board.keys() and square2 not in state.board.keys():
+                                # Is either space under attack?
+                                if not self.is_board_location_under_attack(state, square1, self.player.opponent.color) \
+                                    and \
+                                    not self.is_board_location_under_attack(state, square2,
+                                                                            self.player.opponent.color):
+                                    move.castling = True
+                                    return True
+                return False
+            else:
+                # Queenside castle attempt
+
+                # Is there something at (rank, 0)?
+                if (move.board_location_from[0], 0) in state.board.keys():
+                    # Is it a rook?
+                    if state.board[(move.board_location_from[0], 0)].type == PieceType.ROOK:
+                        rook = state.board[(move.board_location_from[0], 0)]
+
+                        # Has it moved yet?
+                        if not rook.has_moved:
+                            # Castling will work in theory, just need to check intermediate squares
+                            square2 = move.board_location_to
+
+                            # Average the file values to get the middle
+                            square1 = rook.board_location[0], \
+                                      (move.board_location_to[1] + move.board_location_from[1]) / 2
+
+                            # Are the intermediate squares empty?
+                            if square1 not in state.board.keys() and square2 not in state.board.keys():
+                                # Is either space under attack?
+                                if not self.is_board_location_under_attack(state, square1, self.player.opponent.color) \
+                                        and \
+                                        not self.is_board_location_under_attack(state, square2,
+                                                                                self.player.opponent.color):
+                                    move.castling = True
+                                    return True
+                return False
         else:
             # Some other piece
 
