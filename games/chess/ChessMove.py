@@ -8,6 +8,9 @@ class ChessMove:
         self.en_passant = False
         self.castling = False
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         str = "{} {} -> {}".format(self.piece_moved_id, self.board_location_from, self.board_location_to)
 
