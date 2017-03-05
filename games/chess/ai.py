@@ -28,6 +28,9 @@ class AI(BaseAI):
         """
         print("start() function")
 
+        # Appease the interpreter
+        king_board_location = None
+
         # Print which color we are
         print("We are the {} player".format(self.player.color))
 
