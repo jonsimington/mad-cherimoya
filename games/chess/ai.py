@@ -811,11 +811,14 @@ class AI(BaseAI):
                             square2 = move.board_location_to
 
                             # Average the file values to get the middle
-                            square1 = rook.board_location[0], \
-                                      (move.board_location_to[1] + move.board_location_from[1]) / 2
+                            square1 = rook.board_location[0], 3
+
+                            # Queenside castles need to check 3 squares
+                            square3 = rook.board_location[0], 1
 
                             # Are the intermediate squares empty?
-                            if square1 not in state.board.keys() and square2 not in state.board.keys():
+                            if square1 not in state.board.keys() and square2 not in state.board.keys() and \
+                                            square3 not in state.board.keys():
                                 # Is either space under attack?
                                 if not self.is_board_location_under_attack(state, square1, self.player.opponent.color) \
                                         and \
