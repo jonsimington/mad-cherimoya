@@ -258,11 +258,11 @@ class AI(BaseAI):
                     # They didn't castle, continue as normal
                     pass
             elif self.current_state.enemy_pieces[enemy_piece_id].type == PieceType.PAWN:
-                print("Enemy pawn moved two spaces. May be able to be captured en passant!")
                 # Check for en passant setup
                 delta_rank = abs(m.from_rank - m.to_rank)
 
                 if delta_rank == 2:
+                    print("Enemy pawn moved two spaces. May be able to be captured en passant!")
                     # They made their "first" move, ie two spaces
                     passant_pawn = self.current_state.enemy_pieces[enemy_piece_id]
                     r, c = AI.rank_file_to_board_loc((m.to_rank, m.to_file))
@@ -622,7 +622,7 @@ class AI(BaseAI):
                 m.board_location_to = (r + -self.player.rank_direction * 2, c)
 
                 extra_moves.append(m)
-        elif piece == PieceType.KING:
+        elif piece.type == PieceType.KING:
             # TODO: Castling
             if not piece.has_moved and \
                     len(self.is_board_location_under_attack(state, piece.board_location, self.player.opponent.color)) \
