@@ -342,8 +342,11 @@ class AI(BaseAI):
             valid_moves |= self.valid_moves_for_piece(piece, state)
 
         print("Generated {} possible moves".format(len(valid_moves)))
-        print(valid_moves)
 
+        for move in list(valid_moves):
+            print(move)
+
+        print()
         return random.choice(list(valid_moves))
 
     @staticmethod
@@ -899,9 +902,9 @@ class AI(BaseAI):
                 output = "   +------------------------+"
             elif r == -1:
                 # then show the ranks
-                output = "     a  b  c  d  e  f  g  h"
+                output = "     0  1  2  3  4  5  6  7"
             else:  # board
-                output = " " + str(r) + " |"
+                output = " " + str(8 - r) + " |"
                 # fill in all the files with pieces at the current rank
                 for file_offset in range(0, 8):
                     # start at a, with with file offset increasing the char
