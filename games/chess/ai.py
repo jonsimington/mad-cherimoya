@@ -106,12 +106,10 @@ class AI(BaseAI):
                         # Black can castle kingside
                         board[(0, 7)].has_moved = False
                         board[(0, 4)].has_moved = False
-                        pass
                     elif char == "q":
                         # Black can castle queenside
                         board[(0, 0)].has_moved = False
                         board[(0, 4)].has_moved = False
-                        pass
                     else:
                         print("FEN part 3 Error! {}".format(fen[2]))
                         exit(1)
