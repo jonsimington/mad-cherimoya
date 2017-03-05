@@ -26,6 +26,11 @@ class AI(BaseAI):
         """ This is called once the game starts and your AI knows its playerID
         and game. You can initialize your AI here.
         """
+        print("start() function")
+
+        # Print which color we are
+        print("We are the {} player".format(self.player.color))
+
         # If a custom (non-default) FEN has been loaded
         custom_fen = self.game.fen != "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -168,6 +173,7 @@ class AI(BaseAI):
         # replace with your end logic
 
     def run_turn(self):
+        print("Turn {}".format(self.game.current_turn))
         """ This is called every time it is this AI.player's turn.
 
         Returns:
@@ -306,6 +312,7 @@ class AI(BaseAI):
 
         # Generate a random, valid move
         move = self.random_valid_move(self.current_state)
+        print("Chosen move: {}".format(str(move)))
         rank_file = AI.board_loc_to_rank_file(move.board_location_to)
         piece = self.current_state.pieces[move.piece_moved_id]
 
@@ -321,6 +328,9 @@ class AI(BaseAI):
                                                                                      move.piece_captured_id))
         elif move.castling:
             print("We castled!")
+
+        print()
+
         return True  # to signify we are done with our turn.
 
     def random_valid_move(self, state):
@@ -330,6 +340,9 @@ class AI(BaseAI):
         # Iterate through each piece we own
         for key, piece in state.pieces.items():
             valid_moves |= self.valid_moves_for_piece(piece, state)
+
+        print("Generated {} possible moves".format(len(valid_moves)))
+        print(valid_moves)
 
         return random.choice(list(valid_moves))
 
@@ -476,8 +489,8 @@ class AI(BaseAI):
                                                                                 new_state.king_board_location,
                                                                                 len(in_check_set) != 0))"""
 
-        if len(in_check_set) != 0:
-            print(in_check_set)
+        """if len(in_check_set) != 0:
+            print(in_check_set)"""
 
         return len(in_check_set) != 0
 
