@@ -1,3 +1,33 @@
+# Instructions for execution
+Since I couldn't be bothered to edit my PATH variable so that `python3` would work in git bash, I just copied and slightly edited `testRun` and `run` to call `python` instead of `python3`. These files are `testRunWindows` and `runWindows`. I left the originals untouched, so this will work everywhere now. 
+
+# Note on board space text representation
+The only weird thing about my submission is that I output spaces in a different way. I got annoyed with converting the string part of a (rank, file) coordinate system to an integer just to add things to it, so I use standard screen notation.
+- `(0,0)` is the top-left corner of the board
+- `(7, 7)` is the bottom-right corner of the board
+
+I have updated the board printing function to reflect that
+
+Every time the board prints, it now looks like this:
+
+```  
+   +------------------------+
+ 0 | r  n  b  q  k  b  n  r |
+ 1 | p  p  p  p  p  p  p  p |
+ 2 | .  .  .  .  .  .  .  . |
+ 3 | .  .  .  .  .  .  .  . |
+ 4 | .  .  .  .  .  .  .  . |
+ 5 | .  .  .  .  .  .  .  . |
+ 6 | P  P  P  P  P  P  P  P |
+ 7 | R  N  B  Q  K  B  N  R |
+   +------------------------+
+     0  1  2  3  4  5  6  7
+```
+
+This code was developed using PyCharm 2016.3.2 if that matters
+
+
+
 # Chess Python 3 Client
 
 This is the root of you AI. Stay out of the `joueur/` folder, it does most of the heavy lifting to play on our game servers. Your AI, and the game objects it manipulates are all in `games/chess/`, with your very own AI living in `games/chess/ai.py` for you to make smarter.
