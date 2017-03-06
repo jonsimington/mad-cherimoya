@@ -18,5 +18,7 @@ class ChessMove:
             str += " (En Passant Capture)"
         elif self.castling:
             str += " (Castling)"
+        elif self.promote_to != "":
+            str += " (Promoted to {})".format(self.promote_to)
 
         return str
