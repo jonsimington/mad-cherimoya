@@ -195,6 +195,7 @@ class AI(BaseAI):
 
         # 1) print the board to the console
         self.print_current_board()
+        print()
 
         if len(self.game.moves) > 0:
             # TODO: Set the en passant enemy variable
@@ -312,12 +313,19 @@ class AI(BaseAI):
 
         # 3) print how much time remaining this AI has to calculate moves
         print("Time Remaining: " + str(self.player.time_remaining) + " ns")
+        print()
 
         # Generate a random, valid move
         move = self.random_valid_move(self.current_state)
         print("Chosen move: {}".format(str(move)))
         rank_file = AI.board_loc_to_rank_file(move.board_location_to)
         piece = self.current_state.pieces[move.piece_moved_id]
+
+        # Print all moves for chosen piece
+        v_m = self.valid_moves_for_piece(piece, self.current_state)
+        print("All {} possible moves for {}:".format(len(v_m), str(piece)))
+        for m in list(v_m):
+            print(m)
 
         # Apply that move and see if it crashes
         piece.game_piece.move(rank_file[1], rank_file[0], move.promote_to)
