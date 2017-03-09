@@ -372,6 +372,9 @@ class AI(BaseAI):
     def dl_mm_min_val(self, state, depth):
         pass
 
+    def chess_heuristic(self, state):
+        return 0
+
     @staticmethod
     def board_loc_to_rank_file(board_loc):
         return 8 - board_loc[0], chr(ord("a") + board_loc[1])
