@@ -466,18 +466,17 @@ class AI(BaseAI):
 
     def chess_heuristic(self, state):
         piece_values = {PieceType.PAWN: 1, PieceType.KNIGHT: 3, PieceType.BISHOP: 3, PieceType.ROOK: 5,
-                        PieceType.QUEEN: 9}
-        white_value = 0
-        black_value = 0
+                        PieceType.QUEEN: 9, PieceType.KING: 0}
+        my_value = 0
+        their_value = 0
 
-        for key, value in state.board.items():
-            if value.type != PieceType.KING:
-                if value.color == "White":
-                    white_value += piece_values[value.type]
-                else:
-                    black_value += piece_values[value.type]
+        for key, value in state.pieces.items():
+            my_value += piece_values[value.type]
 
-        return white_value - black_value
+        for key, value in state.enemy_pieces.items():
+            their_value += piece_values[value.type]
+
+        return my_value - their_value
 
     @staticmethod
     def board_loc_to_rank_file(board_loc):
