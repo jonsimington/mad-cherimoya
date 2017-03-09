@@ -383,17 +383,28 @@ class AI(BaseAI):
             state.neighbors.append(resulting_state)
             lookup[resulting_state] = move
 
+        current_level = state.neighbors
+
         # Iterate through the possible depths we're allowed to look at
         for depth in range(1, max_depth + 1, 1):
             # Call minimax on the current depth
-            best_move = self.dl_mm(state, depth)
+            best_state = self.dl_mm(state, depth)
 
             # Generate the next depth worth of nodes
-            for neighbor in state.neighbors:
+            next_level = []
+            for neighbor in current_level:
                 valid_moves = list(self.valid_moves_in_state(neighbor))
 
                 for move in valid_moves:
                     neighbor.neighbors.append(self.state_after_move(neighbor, move))
+
+                # For easy access, add them to a new list
+                next_level.extend(neighbor.neighbors)
+            current_level = next_level
+            next_level = None
+
+        # Return the move that gets us to the best state
+        return lookup[best_state]
 
     def dl_mm(self, state, max_depth):
         if max_depth == 0:
