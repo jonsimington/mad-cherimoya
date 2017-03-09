@@ -436,12 +436,33 @@ class AI(BaseAI):
 
         return extreme_state
 
-
     def dl_mm_max_val(self, state, depth):
-        pass
+        max_value = None
+        # Base case, return heuristic
+        if depth == 0:
+            return self.chess_heuristic(state)
+        
+        for neighbor in state.neighbors:
+            value = self.dl_mm_min_val(neighbor, depth - 1)
+            
+            if max_value is None or value > max_value:
+                max_value = value
+        
+        return max_value
 
     def dl_mm_min_val(self, state, depth):
-        pass
+        min_value = None
+        # Base case, return heuristic
+        if depth == 0:
+            return self.chess_heuristic(state)
+
+        for neighbor in state.neighbors:
+            value = self.dl_mm_max_val(neighbor, depth - 1)
+
+            if min_value is None or value > min_value:
+                min_value = value
+
+        return min_value
 
     def chess_heuristic(self, state):
         return 0
