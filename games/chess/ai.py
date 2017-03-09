@@ -411,30 +411,17 @@ class AI(BaseAI):
             # Dumb, we have to go at least one ply deep
             return None
 
-        extreme_value = None
-        extreme_state = None
-
-        # Function pointers!
-        value_function = None
-        compare_function = None
-
-        if self.player.color == "White":
-            # White player wants to max
-            value_function = self.dl_mm_max_val
-            compare_function = max
-        else:
-            # Black player wants to min
-            value_function = self.dl_mm_min_val
-            compare_function = min
+        max_value = None
+        best_state = None
 
         for neighbor in state.neighbors:
-            value = value_function(neighbor, max_depth - 1)
+            value = self.dl_mm_min_val(neighbor, max_depth - 1)
 
-            if extreme_state is None or compare_function(extreme_value, value) != value:
-                extreme_state = neighbor
-                extreme_value = value
+            if best_state is None or value > max_value:
+                best_state = neighbor
+                max_value = value
 
-        return extreme_state
+        return best_state
 
     def dl_mm_max_val(self, state, depth):
         max_value = None
