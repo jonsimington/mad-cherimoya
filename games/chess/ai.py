@@ -316,7 +316,7 @@ class AI(BaseAI):
         print()
 
         # Generate a random, valid move
-        move = self.random_valid_move(self.current_state)
+        move = self.id_mm(self.current_state)  # random_valid_move(self.current_state)
         print("Chosen move: {}".format(str(move)))
         rank_file = AI.board_loc_to_rank_file(move.board_location_to)
         piece = self.current_state.pieces[move.piece_moved_id]
