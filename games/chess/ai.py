@@ -360,21 +360,28 @@ class AI(BaseAI):
         print()
         return random.choice(list(valid_moves))
 
-    def get_neighbors(self, state):
+    def valid_moves_in_state(self, state):
         valid_moves = set()
         # Iterate through each piece we own
         for key, piece in state.pieces.items():
             valid_moves |= self.valid_moves_for_piece(piece, state)
 
-        return list(valid_moves)
+        return valid_moves
 
     def id_mm(self, state):
         # Defina a max depth
         # TODO: Put this somewhere else
         max_depth = 5
+        lookup = {}
 
         # Set the initial depth
-        state.neighbors = self.get_neighbors(state)
+        valid_moves = list(self.valid_moves_in_state(state))
+
+        # Set up a table to reference the move that put us in a state
+        for move in valid_moves:
+            resulting_state = self.state_after_move(state, move)
+            state.neighbors.append(resulting_state)
+            lookup[resulting_state] = move
 
         # Iterate through the possible depths we're allowed to look at
         for depth in range(1, max_depth + 1, 1):
@@ -383,7 +390,10 @@ class AI(BaseAI):
 
             # Generate the next depth worth of nodes
             for neighbor in state.neighbors:
-                neighbor.neighbors = self.get_neighbors(neighbor)
+                valid_moves = list(self.valid_moves_in_state(neighbor))
+
+                for move in valid_moves:
+                    neighbor.neighbors.append(self.state_after_move(neighbor, move))
 
     def dl_mm(self, state, max_depth):
         pass
