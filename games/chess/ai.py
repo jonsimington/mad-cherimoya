@@ -459,7 +459,7 @@ class AI(BaseAI):
         for neighbor in state.neighbors:
             value = self.dl_mm_max_val(neighbor, depth - 1)
 
-            if min_value is None or value > min_value:
+            if min_value is None or value < min_value:
                 min_value = value
 
         return min_value
