@@ -371,7 +371,7 @@ class AI(BaseAI):
     def id_mm(self, state):
         # Defina a max depth
         # TODO: Put this somewhere else
-        max_depth = 5
+        max_depth = 2
         lookup = {}
 
         # Set the initial depth
@@ -465,7 +465,19 @@ class AI(BaseAI):
         return min_value
 
     def chess_heuristic(self, state):
-        return 0
+        piece_values = {PieceType.PAWN: 1, PieceType.KNIGHT: 3, PieceType.BISHOP: 3, PieceType.ROOK: 5,
+                        PieceType.QUEEN: 9}
+        white_value = 0
+        black_value = 0
+
+        for key, value in state.board.items():
+            if value.type != PieceType.KING:
+                if value.color == "White":
+                    white_value += piece_values[value.type]
+                else:
+                    black_value += piece_values[value.type]
+
+        return white_value - black_value
 
     @staticmethod
     def board_loc_to_rank_file(board_loc):
