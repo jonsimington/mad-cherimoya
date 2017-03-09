@@ -360,6 +360,18 @@ class AI(BaseAI):
         print()
         return random.choice(list(valid_moves))
 
+    def id_mm(self, state):
+        pass
+
+    def dl_mm(self, state, max_depth):
+        pass
+
+    def dl_mm_max_val(self, state, depth):
+        pass
+
+    def dl_mm_min_val(self, state, depth):
+        pass
+
     @staticmethod
     def board_loc_to_rank_file(board_loc):
         return 8 - board_loc[0], chr(ord("a") + board_loc[1])
