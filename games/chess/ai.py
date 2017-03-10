@@ -30,6 +30,7 @@ class AI(BaseAI):
 
         # Appease the interpreter
         king_board_location = None
+        enemy_king_board_location = None
 
         # Print which color we are
         print("We are the {} player".format(self.player.color))
@@ -44,6 +45,7 @@ class AI(BaseAI):
         # Reference pieces by location
         board = {}
         en_passant_enemy = None
+        en_passant_ally = None
 
         # Load our pieces
         for piece in self.player.pieces:
@@ -59,7 +61,7 @@ class AI(BaseAI):
                 else:
                     # If the pawn is on rank 7
                     p.has_moved = p.board_location[0] != 1
-            if p.type == PieceType.KING:
+            elif p.type == PieceType.KING:
                 # Set a special variable for the king
                 king_board_location = p.board_location
 
@@ -83,6 +85,9 @@ class AI(BaseAI):
                 else:
                     # If the pawn is on rank 7
                     p.has_moved = p.board_location[0] != 1
+            elif p.type == PieceType.KING:
+                # Set a special variable for the king
+                enemy_king_board_location = p.board_location
 
             # Add to the dictionary
             enemy_pieces[str(p)] = p
@@ -130,20 +135,27 @@ class AI(BaseAI):
 
                 if loc[0] % 2 == 0:
                     # It's a black piece
-
                     if self.player.color != "Black":
                         # It's an enemy piece
                         piece_loc = loc[0] + 1, loc[1]
                         en_passant_enemy = board[piece_loc], loc
+                    else:
+                        # It's our piece
+                        piece_loc = loc[0] + 1, loc[1]
+                        en_passant_ally = board[piece_loc], loc
                 else:
                     # It's a white piece
                     if self.player.color != "White":
                         # It's an enemy piece
                         piece_loc = loc[0] - 1, loc[1]
                         en_passant_enemy = board[piece_loc], loc
+                    else:
+                        # It's our piece
+                        piece_loc = loc[0] + 1, loc[1]
+                        en_passant_ally = board[piece_loc], loc
 
                 if en_passant_enemy is not None:
-                    print("There is an enemy who may be able to be captured en passant")
+                    print("There is an enemy or ally who may be able to be captured en passant")
 
         # Create our initial state
         self.current_state = ChessState()
@@ -151,6 +163,8 @@ class AI(BaseAI):
         self.current_state.pieces = pieces
         self.current_state.enemy_pieces = enemy_pieces
         self.current_state.en_passant_enemy = en_passant_enemy
+        self.current_state.en_passant_ally = en_passant_ally
+        self.current_state.enemy_king_board_location = enemy_king_board_location
         self.current_state.king_board_location = king_board_location
         self.current_state.fen_string = self.game.fen
 
@@ -263,6 +277,8 @@ class AI(BaseAI):
                 else:
                     # They didn't castle, continue as normal
                     pass
+                # Regardless, keep track of the enemy king
+                self.current_state.enemy_king_board_location = AI.rank_file_to_board_loc((m.to_rank, m.to_file))
             elif self.current_state.enemy_pieces[enemy_piece_id].type == PieceType.PAWN:
                 # Check for en passant setup
                 delta_rank = abs(m.from_rank - m.to_rank)
@@ -634,12 +650,15 @@ class AI(BaseAI):
         new_state.pieces = new_pieces
         new_state.enemy_pieces = new_enemy_pieces
 
-        if state.en_passant_enemy is not None:
-            new_state.en_passant_enemy = state.en_passant_enemy
+        # Todo: Deal with this
+        new_state.en_passant_enemy = state.en_passant_enemy
+        new_state.en_passant_ally = state.en_passant_ally
 
+        new_state.enemy_king_board_location = state.enemy_king_board_location
         new_state.king_board_location = state.king_board_location
 
         # Apply the move
+        # TODO: Make this player-agnostic
         piece = new_state.pieces[move.piece_moved_id]
 
         # Update king_board_location if necessary
@@ -685,17 +704,22 @@ class AI(BaseAI):
         del new_state.board[piece.board_location]
         piece.board_location = move.board_location_to
 
-        if piece.type == PieceType.PAWN and move.promote_to != "":
-            # Promotion occurred!
+        if piece.type == PieceType.PAWN:
+            delta_rank = abs(move.board_location_to[0] - move.board_location_from[0])
+            if delta_rank == 2:
+                # Possibility of being en passant captured
+                new_state.en_passant_ally = piece
+            elif move.promote_to != "":
+                # Promotion occurred!
 
-            # Remove it from our piece dict
-            del new_state.pieces[str(piece)]
+                # Remove it from our piece dict
+                del new_state.pieces[str(piece)]
 
-            # Promote it
-            piece.type = PieceType[move.promote_to.upper()]
+                # Promote it
+                piece.type = PieceType[move.promote_to.upper()]
 
-            # Put it back
-            new_state.pieces[str(piece)] = piece
+                # Put it back
+                new_state.pieces[str(piece)] = piece
 
         if move.piece_captured_id is not None:
             # There was something there, grab its id then remove it
