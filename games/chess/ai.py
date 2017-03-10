@@ -198,8 +198,6 @@ class AI(BaseAI):
         print()
 
         if len(self.game.moves) > 0:
-            # TODO: Set the en passant enemy variable
-            # TODO: Handle piece promotion
             # Grab the previous move
             m = self.game.moves[-1]
             enemy_piece = m.piece
@@ -345,8 +343,6 @@ class AI(BaseAI):
         return True  # to signify we are done with our turn.
 
     def random_valid_move(self, state):
-        # TODO: Select a piece and print all legal moves for that piece
-        # TODO: Handle promotion
         valid_moves = set()
         # Iterate through each piece we own
         for key, piece in state.pieces.items():
@@ -371,6 +367,7 @@ class AI(BaseAI):
     def id_mm(self, state):
         # Defina a max depth
         # TODO: Put this somewhere else
+        # TODO: Alternate who is at move
         max_depth = 2
         lookup = {}
 
@@ -550,7 +547,6 @@ class AI(BaseAI):
                                                         i <= occupying_piece.type.num_spaces:
                                             # The found piece can not only move in the direction we're looking,
                                             # but also make it the number of steps we've counted in one turn
-                                            # TODO: Perhaps return which piece is threatening this location?
                                             attacking_piece_id_location_tuples.add(
                                                 (str(occupying_piece), occupying_piece.board_location))
                                             """ print("{} is under attack by a {} at {}".format(
@@ -686,9 +682,6 @@ class AI(BaseAI):
                 del rook
 
         # Apply this move to the internal state
-        # TODO: Fix KeyError where an en passant capture happens but the captured pawn stays on the board internally
-        # TODO: Remove the captured piece (if there is one) from the opponent dictionary
-        # TODO: Handle en passant
         del new_state.board[piece.board_location]
         piece.board_location = move.board_location_to
 
@@ -736,8 +729,6 @@ class AI(BaseAI):
         return new_piece
 
     def valid_moves_for_piece(self, piece, state):
-        # TODO: Add all the weird rules like 2 space pawn movement, castling, promotion, etc...
-        # TODO: Do a check to see if this new state is in check
         valid_moves = set()
         extra_moves = []
         if piece.type == PieceType.PAWN:
@@ -753,7 +744,6 @@ class AI(BaseAI):
 
                 extra_moves.append(m)
         elif piece.type == PieceType.KING:
-            # TODO: Castling
             if not piece.has_moved and \
                     len(self.is_board_location_under_attack(state, piece.board_location, self.player.opponent.color)) \
                             == 0:
