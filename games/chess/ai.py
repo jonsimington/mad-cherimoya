@@ -372,10 +372,11 @@ class AI(BaseAI):
         print()
         return random.choice(list(valid_moves))
 
-    def valid_moves_in_state(self, state):
+    def valid_moves_in_state(self, state, me=True):
+        chosen_pieces = state.pieces if me else state.enemy_pieces
         valid_moves = set()
         # Iterate through each piece we own
-        for key, piece in state.pieces.items():
+        for key, piece in chosen_pieces.items():
             valid_moves |= self.valid_moves_for_piece(piece, state)
 
         return valid_moves
@@ -608,7 +609,7 @@ class AI(BaseAI):
                                     (str(occupying_piece), occupying_piece.board_location))
         return attacking_piece_id_location_tuples
 
-    def is_in_check_after_move(self, move, state):
+    def is_in_check_after_move(self, move, state, me=True):
         new_state = AI.state_after_move(state, move)
 
         in_check_set = self.is_board_location_under_attack(new_state, new_state.king_board_location,
@@ -752,7 +753,11 @@ class AI(BaseAI):
 
         return new_piece
 
-    def valid_moves_for_piece(self, piece, state):
+    def valid_moves_for_piece(self, piece, state, me=True):
+        # Set player-at-move-specific things
+        rank_direction = -self.player.rank_direction if me else -self.player.opponent.rank_direction
+        opponent_color = self.player.opponent.color if me else self.player.color
+
         valid_moves = set()
         extra_moves = []
         if piece.type == PieceType.PAWN:
@@ -764,12 +769,12 @@ class AI(BaseAI):
                 m = ChessMove()
                 m.piece_moved_id = str(piece)
                 m.board_location_from = r, c
-                m.board_location_to = (r + -self.player.rank_direction * 2, c)
+                m.board_location_to = (r + rank_direction * 2, c)
 
                 extra_moves.append(m)
         elif piece.type == PieceType.KING:
             if not piece.has_moved and \
-                    len(self.is_board_location_under_attack(state, piece.board_location, self.player.opponent.color)) \
+                    len(self.is_board_location_under_attack(state, piece.board_location, opponent_color)) \
                             == 0:
                 # King hasn't moved and we aren't in check currently, good
 
@@ -802,8 +807,8 @@ class AI(BaseAI):
                     m.board_location_from = piece.board_location
                     m.board_location_to = r, c
 
-                    if self.is_valid(m, state):
-                        if not self.is_in_check_after_move(m, state):
+                    if self.is_valid(m, state, me):
+                        if not self.is_in_check_after_move(m, state, me):
                             if piece.type == PieceType.PAWN:
                                 # Check for promotion
                                 if (self.player.color == "White" and m.board_location_to[0] == 0) or \
@@ -829,13 +834,18 @@ class AI(BaseAI):
                         break
         # Take care of any extra moves
         for m in extra_moves:
-            if self.is_valid(m, state):
-                if not self.is_in_check_after_move(m, state):
+            if self.is_valid(m, state, me):
+                if not self.is_in_check_after_move(m, state, me):
                     valid_moves.add(m)
 
         return valid_moves
 
-    def is_valid(self, move, state):
+    def is_valid(self, move, state, me=True):
+        # Player-at-move-specific things
+        rank_direction = -self.player.rank_direction if me else -self.player.opponent.rank_direction
+        en_passant_enemy = state.en_passant_enemy if me else state.en_passant_ally
+        enemy_color = self.player.opponent.color if me else self.player.color
+
         piece = state.pieces[move.piece_moved_id]
         r, c = move.board_location_to
 
@@ -846,7 +856,7 @@ class AI(BaseAI):
         if piece.type == PieceType.PAWN:
             # Negate rank direction to fit my coordinate system
             delta_row = move.board_location_to[0] - piece.board_location[0]
-            if delta_row / abs(delta_row) != -self.player.rank_direction:
+            if delta_row / abs(delta_row) != rank_direction:
                 # Pawns can't move backwards
                 return False
 
@@ -868,10 +878,10 @@ class AI(BaseAI):
                 # It's moving diagonally
 
                 # En Passant?
-                if state.en_passant_enemy is not None:
+                if en_passant_enemy is not None:
                     # Are we moving there?
                     if move.board_location_to == state.en_passant_enemy[1]:
-                        move.piece_captured_id = str(state.en_passant_enemy[0])
+                        move.piece_captured_id = str(en_passant_enemy[0])
                         move.en_passant = True
                         return True
 
@@ -879,7 +889,7 @@ class AI(BaseAI):
                     # Something is there
                     other_piece = state.board[move.board_location_to]
 
-                    if other_piece.color != piece.color:
+                    if other_piece.color == enemy_color:
                         # Get 'em
                         move.piece_captured_id = str(other_piece)
                         return True
@@ -927,10 +937,10 @@ class AI(BaseAI):
                             # Are the intermediate squares empty?
                             if square1 not in state.board.keys() and square2 not in state.board.keys():
                                 # Is either space under attack?
-                                if not self.is_board_location_under_attack(state, square1, self.player.opponent.color) \
+                                if not self.is_board_location_under_attack(state, square1, enemy_color) \
                                     and \
                                     not self.is_board_location_under_attack(state, square2,
-                                                                            self.player.opponent.color):
+                                                                            enemy_color):
                                     move.castling = True
                                     return True
                 return False
@@ -958,10 +968,10 @@ class AI(BaseAI):
                             if square1 not in state.board.keys() and square2 not in state.board.keys() and \
                                             square3 not in state.board.keys():
                                 # Is either space under attack?
-                                if not self.is_board_location_under_attack(state, square1, self.player.opponent.color) \
+                                if not self.is_board_location_under_attack(state, square1, enemy_color) \
                                         and \
                                         not self.is_board_location_under_attack(state, square2,
-                                                                                self.player.opponent.color):
+                                                                                enemy_color):
                                     move.castling = True
                                     return True
                 return False
