@@ -9,3 +9,13 @@ class ChessState:
         self.king_board_location = None
         self.fen_string = None
         self.neighbors = []
+        self.move_made = None
+        self.heuristic_value = None
+
+    def __str__(self):
+        string = str(self.move_made)
+
+        if self.heuristic_value is not None:
+            string += ": " + str(self.heuristic_value)
+
+        return string
