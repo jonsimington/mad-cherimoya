@@ -336,10 +336,10 @@ class AI(BaseAI):
         piece = self.current_state.pieces[move.piece_moved_id]
 
         # Print all moves for chosen piece
-        v_m = self.valid_moves_for_piece(piece, self.current_state)
+        """v_m = self.valid_moves_for_piece(piece, self.current_state)
         print("All {} possible moves for {}:".format(len(v_m), str(piece)))
         for m in list(v_m):
-            print(m)
+            print(m)"""
 
         # Apply that move and see if it crashes
         piece.game_piece.move(rank_file[1], rank_file[0], move.promote_to)
@@ -382,20 +382,19 @@ class AI(BaseAI):
         return valid_moves
 
     def id_mm(self, state):
+        print("ID-Minimax for {}".format(self.player.color))
         # Defina a max depth
         # TODO: Put this somewhere else
         # TODO: Alternate who is at move
         max_depth = 2
-        lookup = {}
-
-        # Set the initial depth
-        valid_moves = list(self.valid_moves_in_state(state))
+        me = True
+        # Set the initial depth, for me
+        valid_moves = list(self.valid_moves_in_state(state, me))
 
         # Set up a table to reference the move that put us in a state
         for move in valid_moves:
-            resulting_state = self.state_after_move(state, move)
+            resulting_state = self.state_after_move(state, move, me)
             state.neighbors.append(resulting_state)
-            lookup[resulting_state] = move
 
         current_level = state.neighbors
 
@@ -405,12 +404,14 @@ class AI(BaseAI):
             best_state = self.dl_mm(state, depth)
 
             # Generate the next depth worth of nodes
+            # Generate moves for the OTHER player
+            me = not me
             next_level = []
             for neighbor in current_level:
-                valid_moves = list(self.valid_moves_in_state(neighbor))
+                valid_moves = list(self.valid_moves_in_state(neighbor, me))
 
                 for move in valid_moves:
-                    neighbor.neighbors.append(self.state_after_move(neighbor, move))
+                    neighbor.neighbors.append(self.state_after_move(neighbor, move, me))
 
                 # For easy access, add them to a new list
                 next_level.extend(neighbor.neighbors)
@@ -418,31 +419,39 @@ class AI(BaseAI):
             next_level = None
 
         # Return the move that gets us to the best state
-        return lookup[best_state]
+        return best_state.move_made
 
     def dl_mm(self, state, max_depth):
+        print("Depth-Limited MiniMax; d = {}".format(max_depth))
         if max_depth == 0:
             # Dumb, we have to go at least one ply deep
             return None
 
-        max_value = None
+        max_value = 0
         best_state = None
 
+        print("Looking at {} neighbors".format(len(state.neighbors)))
         for neighbor in state.neighbors:
             value = self.dl_mm_min_val(neighbor, max_depth - 1)
 
+            print("{}: {}".format(str(neighbor), value))
+
             if best_state is None or value > max_value:
+                print("{} is the new max!".format(str(neighbor)))
                 best_state = neighbor
                 max_value = value
 
+        print("Returning {} with a value of {}".format(str(best_state), max_value))
         return best_state
 
     def dl_mm_max_val(self, state, depth):
+        print("MaxV({}, {})".format(str(state), depth))
         max_value = None
         # Base case, return heuristic
         if depth == 0:
             return self.chess_heuristic(state)
-        
+
+        print("Looking at {} neighbors".format(len(state.neighbors)))
         for neighbor in state.neighbors:
             value = self.dl_mm_min_val(neighbor, depth - 1)
             
@@ -452,11 +461,13 @@ class AI(BaseAI):
         return max_value
 
     def dl_mm_min_val(self, state, depth):
+        print("MinV({}, {}".format(str(state), depth))
         min_value = None
         # Base case, return heuristic
         if depth == 0:
             return self.chess_heuristic(state)
 
+        print("Looking at {} neighbors".format(len(state.neighbors)))
         for neighbor in state.neighbors:
             value = self.dl_mm_max_val(neighbor, depth - 1)
 
@@ -612,8 +623,9 @@ class AI(BaseAI):
     def is_in_check_after_move(self, move, state, me=True):
         opponent_color = self.player.opponent.color if me else self.player.color
         new_state = self.state_after_move(state, move, me)
+        king_board_location = new_state.king_board_location if me else new_state.enemy_king_board_location
 
-        in_check_set = self.is_board_location_under_attack(new_state, new_state.king_board_location, opponent_color)
+        in_check_set = self.is_board_location_under_attack(new_state, king_board_location, opponent_color)
 
         """print("If {} moves from {} -> {}, is the King ({}) in check? {}".format(move.piece_moved_id,
                                                                                 move.board_location_from,
@@ -715,9 +727,11 @@ class AI(BaseAI):
             if delta_rank == 2:
                 # Possibility of being en passant captured
                 if me:
-                    new_state.en_passant_ally = piece
+                    new_state.en_passant_ally = piece, (move.board_location_to[0] + self.player.rank_direction,
+                                                        move.board_location_to[1])
                 else:
-                    new_state.en_passant_enemy = piece
+                    new_state.en_passant_enemy = piece, (move.board_location_to[0] - self.player.rank_direction,
+                                                         move.board_location_to[1])
             elif move.promote_to != "":
                 # Promotion occurred!
 
@@ -747,6 +761,9 @@ class AI(BaseAI):
             new_state.en_passant_enemy = None
         else:
             new_state.en_passant_ally = None
+
+        # Add the move that put us in this state
+        new_state.move_made = move
 
         return new_state
 
@@ -892,7 +909,7 @@ class AI(BaseAI):
                 # En Passant?
                 if en_passant_enemy is not None:
                     # Are we moving there?
-                    if move.board_location_to == state.en_passant_enemy[1]:
+                    if move.board_location_to == en_passant_enemy[1]:
                         move.piece_captured_id = str(en_passant_enemy[0])
                         move.en_passant = True
                         return True
