@@ -626,8 +626,7 @@ class AI(BaseAI):
 
         return len(in_check_set) != 0
 
-    @staticmethod
-    def state_after_move(state, move):
+    def state_after_move(self, state, move):
         # Copy the state
         # TODO: Maybe only copy the piece that moves?
         new_board = {}
@@ -658,13 +657,21 @@ class AI(BaseAI):
         new_state.enemy_king_board_location = state.enemy_king_board_location
         new_state.king_board_location = state.king_board_location
 
+        # Create a boolean to determine if we are making the move or if the opponent is
+        me = move.player_moved == self.player.color
+        my_pieces = new_state.pieces if me else new_state.enemy_pieces
+        their_pieces = new_state.enemy_pieces if me else new_state.pieces
+
         # Apply the move
         # TODO: Make this player-agnostic
-        piece = new_state.pieces[move.piece_moved_id]
+        piece = my_pieces[move.piece_moved_id]
 
         # Update king_board_location if necessary
         if piece.type == PieceType.KING:
-            new_state.king_board_location = move.board_location_to
+            if me:
+                new_state.king_board_location = move.board_location_to
+            else:
+                new_state.enemy_king_board_location = move.board_location_to
 
             delta_file = move.board_location_to[1] - move.board_location_from[1]
             rank = move.board_location_from[0]
@@ -709,33 +716,39 @@ class AI(BaseAI):
             delta_rank = abs(move.board_location_to[0] - move.board_location_from[0])
             if delta_rank == 2:
                 # Possibility of being en passant captured
-                new_state.en_passant_ally = piece
+                if me:
+                    new_state.en_passant_ally = piece
+                else:
+                    new_state.en_passant_enemy = piece
             elif move.promote_to != "":
                 # Promotion occurred!
 
                 # Remove it from our piece dict
-                del new_state.pieces[str(piece)]
+                del my_pieces[str(piece)]
 
                 # Promote it
                 piece.type = PieceType[move.promote_to.upper()]
 
                 # Put it back
-                new_state.pieces[str(piece)] = piece
+                my_pieces[str(piece)] = piece
 
         if move.piece_captured_id is not None:
             # There was something there, grab its id then remove it
 
             # Wipe it from the board (takes into account the en passant capture where you don't move onto the space
             # of the piece you capture
-            del new_state.board[new_state.enemy_pieces[move.piece_captured_id].board_location]
-            del new_state.enemy_pieces[move.piece_captured_id]
+            del new_state.board[their_pieces[move.piece_captured_id].board_location]
+            del their_pieces[move.piece_captured_id]
 
         piece.rank_file = AI.board_loc_to_rank_file(move.board_location_to)
         new_state.board[piece.board_location] = piece
         piece.has_moved = True
 
         # Reset the en passant enemy because regardless of whether or not we captured it, en passant no longer exists
-        new_state.en_passant_enemy = None
+        if me:
+            new_state.en_passant_enemy = None
+        else:
+            new_state.en_passant_ally = None
 
         return new_state
 
