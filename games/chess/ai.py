@@ -377,7 +377,7 @@ class AI(BaseAI):
         valid_moves = set()
         # Iterate through each piece we own
         for key, piece in chosen_pieces.items():
-            valid_moves |= self.valid_moves_for_piece(piece, state)
+            valid_moves |= self.valid_moves_for_piece(piece, state, me)
 
         return valid_moves
 
@@ -779,7 +779,7 @@ class AI(BaseAI):
                 # King hasn't moved and we aren't in check currently, good
 
                 # Let the move checker mess with the details
-                for m_t in [(0, -2),(0, 2)]:
+                for m_t in [(0, -2), (0, 2)]:
                     # Throw them in the extra moves list
                     r, c = piece.board_location
 
@@ -845,8 +845,9 @@ class AI(BaseAI):
         rank_direction = -self.player.rank_direction if me else -self.player.opponent.rank_direction
         en_passant_enemy = state.en_passant_enemy if me else state.en_passant_ally
         enemy_color = self.player.opponent.color if me else self.player.color
+        pieces = state.pieces if me else state.enemy_pieces
 
-        piece = state.pieces[move.piece_moved_id]
+        piece = pieces[move.piece_moved_id]
         r, c = move.board_location_to
 
         # Common sense check; is this space even on the board?
@@ -984,7 +985,7 @@ class AI(BaseAI):
                 piece_on_target_loc = state.board[move.board_location_to]
 
                 if piece_on_target_loc.color == piece.color:
-                    move.piece_captured_id = str(piece_on_target_loc)
+                    # Can't capture our own pieces
                     return False
 
             # Check every space between it
