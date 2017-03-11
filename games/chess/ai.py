@@ -610,10 +610,10 @@ class AI(BaseAI):
         return attacking_piece_id_location_tuples
 
     def is_in_check_after_move(self, move, state, me=True):
-        new_state = AI.state_after_move(state, move)
+        opponent_color = self.player.opponent.color if me else self.player.color
+        new_state = self.state_after_move(state, move, me)
 
-        in_check_set = self.is_board_location_under_attack(new_state, new_state.king_board_location,
-                                                           self.player.opponent.color)
+        in_check_set = self.is_board_location_under_attack(new_state, new_state.king_board_location, opponent_color)
 
         """print("If {} moves from {} -> {}, is the King ({}) in check? {}".format(move.piece_moved_id,
                                                                                 move.board_location_from,
@@ -626,7 +626,7 @@ class AI(BaseAI):
 
         return len(in_check_set) != 0
 
-    def state_after_move(self, state, move):
+    def state_after_move(self, state, move, me=True):
         # Copy the state
         # TODO: Maybe only copy the piece that moves?
         new_board = {}
@@ -657,8 +657,6 @@ class AI(BaseAI):
         new_state.enemy_king_board_location = state.enemy_king_board_location
         new_state.king_board_location = state.king_board_location
 
-        # Create a boolean to determine if we are making the move or if the opponent is
-        me = move.player_moved == self.player.color
         my_pieces = new_state.pieces if me else new_state.enemy_pieces
         their_pieces = new_state.enemy_pieces if me else new_state.pieces
 
