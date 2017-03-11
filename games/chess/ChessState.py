@@ -9,5 +9,3 @@ class ChessState:
         self.king_board_location = None
         self.fen_string = None
         self.neighbors = []
-
-
