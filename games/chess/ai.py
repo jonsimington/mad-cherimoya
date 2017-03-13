@@ -672,6 +672,9 @@ class AI(BaseAI):
         my_pieces = new_state.pieces if me else new_state.enemy_pieces
         their_pieces = new_state.enemy_pieces if me else new_state.pieces
 
+        # Copy the ply value and add one to it (This will get reset if conditions match)
+        new_state.ply_since_capture_or_pawn_movement = state.ply_since_capture_or_pawn_movement + 1
+
         # Apply the move
         # TODO: Make this player-agnostic
         piece = my_pieces[move.piece_moved_id]
@@ -723,6 +726,8 @@ class AI(BaseAI):
         piece.board_location = move.board_location_to
 
         if piece.type == PieceType.PAWN:
+            # Reset ply value
+            new_state.ply_since_capture_or_pawn_movement = 0
             delta_rank = abs(move.board_location_to[0] - move.board_location_from[0])
             if delta_rank == 2:
                 # Possibility of being en passant captured
@@ -745,6 +750,9 @@ class AI(BaseAI):
                 my_pieces[str(piece)] = piece
 
         if move.piece_captured_id is not None:
+            # Reset ply value
+            new_state.ply_since_capture_or_pawn_movement = 0
+
             # There was something there, grab its id then remove it
 
             # Wipe it from the board (takes into account the en passant capture where you don't move onto the space
