@@ -11,6 +11,7 @@ class ChessState:
         self.neighbors = []
         self.move_made = None
         self.heuristic_value = None
+        self.ply_since_capture_or_pawn_movement = 0
 
     def __str__(self):
         string = str(self.move_made)
@@ -19,3 +20,11 @@ class ChessState:
             string += ": " + str(self.heuristic_value)
 
         return string
+
+    def is_draw(self):
+        # TODO: Fifty-move rule
+        if self.ply_since_capture_or_pawn_movement == 100:
+            return True
+        # TODO: Simplified threefold repetition
+        # TODO: Not in check, but no legal move (stalemate)
+        # TODO: Insufficient material
