@@ -212,6 +212,34 @@ class AI(BaseAI):
         print()
 
         if len(self.game.moves) > 0:
+            """move_made = self.game.moves[-1]
+
+            piece_moved_id = self.create_id(move_made.piece)
+
+            if move_made.promotion != "":
+                # Promotion occurred, change id to piece id before it was promoted
+                if self.player.opponent.color == "White":
+                    piece_moved_id = "P" + piece_moved_id[1:]
+                else:
+                    piece_moved_id = "p" + piece_moved_id[1:]
+
+            # Search and find the move chosen from current neighbors
+            for neighbor in self.current_state.neighbors:
+                # Grab the move that brought us to that state
+                m = neighbor.move_made
+
+                # Do they agree on promotion?
+                if m.promote_to == move_made.promotion:
+                    # Promotion may or may not have occurred, but at least they agree
+
+                    # Did the same piece move?
+                    if m.piece_moved_id == piece_moved_id:
+                        # Did they move to the same place?
+                        if AI.board_loc_to_rank_file(m.board_location_to) == (move_made.to_rank, move_made.to_file):
+                            # This is the move that was made
+                            self.current_state = neighbor
+                            break"""
+
             # Grab the previous move
             m = self.game.moves[-1]
             enemy_piece = m.piece
@@ -941,7 +969,7 @@ class AI(BaseAI):
         if piece.owner.color != "White":
             piece_id = piece_id.lower()
 
-        piece_id += piece.id
+        piece_id += str(piece.id).zfill(2)
 
         return piece_id
 
@@ -955,37 +983,25 @@ class AI(BaseAI):
             output = ""
             if r == 9 or r == 0:
                 # then the top or bottom of the board
-                output = "   +------------------------+"
+                output = "   +----------------------------------------+"
             elif r == -1:
                 # then show the ranks
-                output = "     0  1  2  3  4  5  6  7"
+                output = "      0    1    2    3    4    5    6    7"
             else:  # board
                 output = " " + str(8 - r) + " |"
                 # fill in all the files with pieces at the current rank
                 for file_offset in range(0, 8):
                     # start at a, with with file offset increasing the char
-                    f = chr(ord("a") + file_offset)
+                    f = file_offset
                     current_piece = None
-                    for piece in self.game.pieces:
-                        if piece.file == f and piece.rank == r:
-                            # then we found the piece at (file, rank)
-                            current_piece = piece
-                            break
+                    if (8 - r, f) in self.current_state.board.keys():
+                        current_piece = self.current_state.board[(8 - r, f)]
 
-                    code = "."  # default "no piece"
-                    if current_piece:
+                    code = " . "  # default "no piece"
+                    if current_piece is not None:
                         # the code will be the first character of their type
                         # e.g. 'Q' for "Queen"
-                        code = current_piece.type[0]
-
-                        if current_piece.type == "Knight":
-                            # 'K' is for "King", we use 'N' for "Knights"
-                            code = "N"
-
-                        if current_piece.owner.id == "1":
-                            # the second player (black) is lower case.
-                            # Otherwise it's uppercase already
-                            code = code.lower()
+                        code = str(current_piece)
 
                     output += " " + code + " "
 
