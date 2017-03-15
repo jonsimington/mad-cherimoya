@@ -420,6 +420,10 @@ class AI(BaseAI):
         if max_depth == 0:
             # Dumb, we have to go at least one ply deep
             return None
+        elif len(state.neighbors) == 0:
+            # Some sort of stalemante situation
+            print("No available moves! Leaf node!")
+            return self.chess_heuristic(state)
 
         max_value = 0
         best_state = None
@@ -444,6 +448,10 @@ class AI(BaseAI):
         # Base case, return heuristic
         if depth == 0:
             return self.chess_heuristic(state)
+        elif len(state.neighbors) == 0:
+            # Some sort of stalemante situation
+            print("No available moves! Leaf node!")
+            return self.chess_heuristic(state)
 
         print("Looking at {} neighbors".format(len(state.neighbors)))
         for neighbor in state.neighbors:
@@ -460,6 +468,10 @@ class AI(BaseAI):
         # Base case, return heuristic
         if depth == 0:
             return self.chess_heuristic(state)
+        elif len(state.neighbors) == 0:
+            # Some sort of stalemante situation
+            print("No available moves! Leaf node!")
+            return self.chess_heuristic(state)
 
         print("Looking at {} neighbors".format(len(state.neighbors)))
         for neighbor in state.neighbors:
@@ -471,6 +483,12 @@ class AI(BaseAI):
         return min_value
 
     def chess_heuristic(self, state):
+        # Check if this is a check scenario for my opponent
+        if state.is_in_check(False):
+            # TODO: Look back at this
+            print("Evaluating check state!")
+            return 100
+
         piece_values = {PieceType.PAWN: 1, PieceType.KNIGHT: 3, PieceType.BISHOP: 3, PieceType.ROOK: 5,
                         PieceType.QUEEN: 9, PieceType.KING: 0}
         my_value = 0
