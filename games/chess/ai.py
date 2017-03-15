@@ -330,7 +330,8 @@ class AI(BaseAI):
         print()
 
         # Generate a random, valid move
-        move = self.id_mm(self.current_state)  # random_valid_move(self.current_state)
+        state = self.id_mm(self.current_state)  # random_valid_move(self.current_state)
+        move = state.move_made
         print("Chosen move: {}".format(str(move)))
         rank_file = AI.board_loc_to_rank_file(move.board_location_to)
         piece = self.current_state.pieces[move.piece_moved_id]
@@ -344,7 +345,8 @@ class AI(BaseAI):
         # Apply that move and see if it crashes
         piece.game_piece.move(rank_file[1], rank_file[0], move.promote_to)
 
-        self.current_state = self.state_after_move(self.current_state, move)
+        # We already calculated the state, just set it equal
+        self.current_state = state
 
         if move.en_passant:
             print("En Passant capture! {} moved from {} -> {} to capture {}!".format(move.piece_moved_id,
@@ -412,8 +414,8 @@ class AI(BaseAI):
             current_level = next_level
             next_level = None
 
-        # Return the move that gets us to the best state
-        return best_state.move_made
+        # Return the best state
+        return best_state
 
     def dl_mm(self, state, max_depth):
         print("Depth-Limited MiniMax; d = {}".format(max_depth))
