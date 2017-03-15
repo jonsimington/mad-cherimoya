@@ -383,18 +383,15 @@ class AI(BaseAI):
 
     def id_mm(self, state):
         print("ID-Minimax for {}".format(self.player.color))
+        best_state = None
         # Defina a max depth
         # TODO: Put this somewhere else
         # TODO: Alternate who is at move
         max_depth = 2
         me = True
-        # Set the initial depth, for me
-        valid_moves = list(self.valid_moves_in_state(state, me))
 
-        # Set up a table to reference the move that put us in a state
-        for move in valid_moves:
-            resulting_state = self.state_after_move(state, move, me)
-            state.neighbors.append(resulting_state)
+        # Set the initial depth, for me
+        state.neighbors = list(self.valid_moves_in_state(state, me))
 
         current_level = state.neighbors
 
@@ -408,10 +405,7 @@ class AI(BaseAI):
             me = not me
             next_level = []
             for neighbor in current_level:
-                valid_moves = list(self.valid_moves_in_state(neighbor, me))
-
-                for move in valid_moves:
-                    neighbor.neighbors.append(self.state_after_move(neighbor, move, me))
+                neighbor.neighbors.extend(list(self.valid_moves_in_state(neighbor, me)))
 
                 # For easy access, add them to a new list
                 next_level.extend(neighbor.neighbors)
@@ -842,10 +836,8 @@ class AI(BaseAI):
                             # Are the intermediate squares empty?
                             if square1 not in state.board.keys() and square2 not in state.board.keys():
                                 # Is either space under attack?
-                                if not self.is_board_location_under_attack(state, square1, enemy_color) \
-                                    and \
-                                    not self.is_board_location_under_attack(state, square2,
-                                                                            enemy_color):
+                                if not state.is_board_location_under_attack(square1, enemy_color) and \
+                                    not state.is_board_location_under_attack(square2, enemy_color):
                                     move.castling = True
                                     return True
                 return False
@@ -873,10 +865,9 @@ class AI(BaseAI):
                             if square1 not in state.board.keys() and square2 not in state.board.keys() and \
                                             square3 not in state.board.keys():
                                 # Is either space under attack?
-                                if not self.is_board_location_under_attack(state, square1, enemy_color) \
-                                        and \
-                                        not self.is_board_location_under_attack(state, square2,
-                                                                                enemy_color):
+                                if not state.is_board_location_under_attack(square1, enemy_color) and \
+                                        not state.is_board_location_under_attack(square2, enemy_color) and \
+                                        not state.is_board_location_under_attack(square3, enemy_color):
                                     move.castling = True
                                     return True
                 return False
