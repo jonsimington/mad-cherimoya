@@ -199,3 +199,32 @@ class ChessState:
             return True
         # TODO: Not in check, but no legal move (stalemate) - Actually i'll implement that in the heuristic itself
         # TODO: Insufficient material
+        material_lists = [({PieceType.KING}, {PieceType.KING}), 
+                          ({PieceType.KING}, {PieceType.KING, PieceType.BISHOP}),
+                          ({PieceType.KING}, {PieceType.KING, PieceType.KNIGHT}),
+                          ({PieceType.KING, PieceType.BISHOP}, {PieceType.KING, PieceType.BISHOP})]
+
+        for material_list in material_lists:
+            for piece_list in [(self.pieces, self.enemy_pieces), (self.enemy_pieces, self.pieces)]:
+                piece_set = set([p.type for p in piece_list[0]]), set([p.type for p in piece_list[1]])
+                if piece_set[0] == material_list[0] and piece_set[1] == material_list[1]:
+                    # Materials are the same
+
+                    # Is this the special case?
+                    if len(material_list[0]) == len(material_list[1]) == 2:
+                        # TODO: Figure out a way to determine space colors
+                        bishop_spaces = []
+
+                        for piece in piece_list:
+                            for p in piece:
+                                if p.type == PieceType.BISHOP:
+                                    bishop_spaces.append(p.board_location)
+                                    break
+
+                        bishop_spaces[0] = (8 * bishop_spaces[0][0] + bishop_spaces[0][1]) % 2
+                        bishop_spaces[1] = (8 * bishop_spaces[1][0] + bishop_spaces[1][1]) % 2
+
+                        return bishop_spaces[0] == bishop_spaces[1]
+                    else:
+                        return True
+        return False
