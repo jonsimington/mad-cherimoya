@@ -17,7 +17,7 @@ class ChessState:
         self.heuristic_value = None
         self.ply_since_capture_or_pawn_movement = 0
         self.me_in_check = None
-        self._enemy_in_check = None
+        self.enemy_in_check = None
         self.previous_moves = []
         self.ply_since_promotion = 0
 
@@ -31,7 +31,7 @@ class ChessState:
 
     def is_in_check(self, me=True):
         # Lookup stored value
-        lookup_var = self.me_in_check if me else self._enemy_in_check
+        lookup_var = self.me_in_check if me else self.enemy_in_check
 
         if lookup_var is not None:
             return lookup_var
@@ -46,7 +46,7 @@ class ChessState:
         if me:
             self.me_in_check = lookup_var
         else:
-            self._enemy_in_check = lookup_var
+            self.enemy_in_check = lookup_var
 
         return lookup_var
 
@@ -178,5 +178,5 @@ class ChessState:
                 if self.previous_moves[i] != self.previous_moves[i + 4]:
                     return False
             return True
-        # TODO: Not in check, but no legal move (stalemate)
+        # TODO: Not in check, but no legal move (stalemate) - Actually i'll implement that in the heuristic itself
         # TODO: Insufficient material
