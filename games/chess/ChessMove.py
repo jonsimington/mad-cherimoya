@@ -8,6 +8,10 @@ class ChessMove:
         self.en_passant = False
         self.castling = False
 
+    def __eq__(self, other):
+        return self.board_location_from == other.board_location_from and \
+               self.board_location_to == other.board_location_to
+
     def __repr__(self):
         return self.__str__()
 
