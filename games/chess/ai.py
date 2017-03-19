@@ -500,7 +500,6 @@ class AI(BaseAI):
         if depth == 0:
             return self.chess_heuristic(state)
         elif len(state.neighbors) == 0:
-            # Some sort of stalemante situation
             print("No available moves! Leaf node!")
             return self.chess_heuristic(state)
 
@@ -514,11 +513,31 @@ class AI(BaseAI):
         return min_value
 
     def chess_heuristic(self, state):
-        # Check if this is a check scenario for my opponent
-        if state.is_in_check(False):
-            # TODO: Look back at this
-            print("Evaluating check state!")
-            return 100
+        # TODO: Generate one level deeper than necessary to check if valid moves are available
+        # If I did not make the last move, I am at move
+        im_at_move = state.board[state.move_made.board_location_to].color != self.player.color
+
+        if state.is_in_check(im_at_move):
+            # Next player is in check, what about mate?
+            if state.is_in_checkmate(im_at_move):
+                # Am I the next player?
+                if im_at_move:
+                    # This is bad for me
+                    return -200
+                else:
+                    # This is great for me
+                    return 200
+
+            # Am I the one in check?
+            if im_at_move:
+                # Being in check is bad
+                return -100
+            else:
+                # Checking the opponent is great
+                return 100
+        elif state.is_draw():
+            # A draw is a draw, and it's boring
+            return 0
 
         piece_values = {PieceType.PAWN: 1, PieceType.KNIGHT: 3, PieceType.BISHOP: 3, PieceType.ROOK: 5,
                         PieceType.QUEEN: 9, PieceType.KING: 0}

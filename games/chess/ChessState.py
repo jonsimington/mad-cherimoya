@@ -29,6 +29,25 @@ class ChessState:
 
         return string
 
+    def is_in_checkmate(self, me=True):
+        my_color = self.board[self.king_board_location].color if me \
+            else self.board[self.enemy_king_board_location].color
+
+        # I'm in check
+        if self.is_in_check(me):
+            if self.board[self.move_made.board_location_to].color != my_color:
+                # My opponent made the move that got into this state, i am at move
+
+                # If i'm in check and have no moves, i'm in checkmate
+                return len(self.neighbors) == 0
+            else:
+                # I made the move that got into this state. The neighbors are my opponent's move. Indeterminate
+                print("Hit indeterminate case in checkmate lookup")
+                return None
+
+        # I'm not in check, so I can't be in checkmate
+        return False
+
     def is_in_check(self, me=True):
         # Lookup stored value
         lookup_var = self.me_in_check if me else self.enemy_in_check
