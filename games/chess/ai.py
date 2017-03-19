@@ -756,8 +756,8 @@ class AI(BaseAI):
                         if not s.is_in_check(me):
                             if piece.type == PieceType.PAWN:
                                 # Check for promotion
-                                if (self.player.color == "White" and m.board_location_to[0] == 0) or \
-                                   (self.player.color == "Black" and m.board_location_to[0] == 7):
+                                if (opponent_color == "White" and m.board_location_to[0] == 0) or \
+                                   (opponent_color == "Black" and m.board_location_to[0] == 7):
                                     # White or Black pawn promoting
                                     for piece_type in ["Queen", "Rook", "Bishop", "Knight"]:
                                         new_move = ChessMove()
