@@ -7,6 +7,7 @@ from games.chess.ChessMove import ChessMove
 from games.chess.MoveType import MoveType
 from games.chess.ChessState import ChessState
 import random
+from copy import deepcopy
 
 
 class AI(BaseAI):
@@ -577,6 +578,12 @@ class AI(BaseAI):
         # Copy the ply value and add one to it (This will get reset if conditions match)
         new_state.ply_since_capture_or_pawn_movement = state.ply_since_capture_or_pawn_movement + 1
 
+        # Copy over the previous moves
+        new_state.previous_moves = deepcopy(state.previous_moves)
+
+        # Copy the ply since promotion value and increment it
+        new_state.ply_since_promotion = state.ply_since_promotion + 1
+
         # Apply the move
         # TODO: Make this player-agnostic
         piece = my_pieces[move.piece_moved_id]
@@ -642,6 +649,9 @@ class AI(BaseAI):
             elif move.promote_to != "":
                 # Promotion occurred!
 
+                # Reset promotion flag
+                new_state.ply_since_promotion = 0
+
                 # Remove it from our piece dict
                 del my_pieces[str(piece)]
 
@@ -678,6 +688,14 @@ class AI(BaseAI):
         # Set whether each piece is in check. These calls return, but also set internal lookup
         new_state.is_in_check(True)
         new_state.is_in_check(False)
+
+        # Add the move that generated this state to the list of moves
+        new_state.previous_moves.append(move)
+
+        # Appending this move pushed it over 8 moves
+        if len(new_state.previous_moves) == 9:
+            # Delete the oldest state
+            del new_state.previous_moves[0]
 
         return new_state
 

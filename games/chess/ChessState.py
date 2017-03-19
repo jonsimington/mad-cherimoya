@@ -18,6 +18,8 @@ class ChessState:
         self.ply_since_capture_or_pawn_movement = 0
         self.me_in_check = None
         self._enemy_in_check = None
+        self.previous_moves = []
+        self.ply_since_promotion = 0
 
     def __str__(self):
         string = str(self.move_made)
@@ -171,5 +173,10 @@ class ChessState:
         if self.ply_since_capture_or_pawn_movement == 100:
             return True
         # TODO: Simplified threefold repetition
+        if self.ply_since_capture_or_pawn_movement >= 8 and self.ply_since_promotion >= 8:
+            for i in range(4):
+                if self.previous_moves[i] != self.previous_moves[i + 4]:
+                    return False
+            return True
         # TODO: Not in check, but no legal move (stalemate)
         # TODO: Insufficient material
