@@ -350,7 +350,7 @@ class AI(BaseAI):
             self.current_state.enemy_pieces[enemy_piece_id].rank_file = m.to_rank, m.to_file
             self.current_state.enemy_pieces[enemy_piece_id].has_moved = True
 
-        self.print_current_board()
+        AI.print_board(self.current_state)
         print()
 
         # 3) print how much time remaining this AI has to calculate moves
@@ -1014,7 +1014,8 @@ class AI(BaseAI):
 
         return piece_id
 
-    def print_current_board(self):
+    @staticmethod
+    def print_board(state):
         """Prints the current board using pretty ASCII art
         Note: you can delete this function if you wish
         """
@@ -1035,8 +1036,8 @@ class AI(BaseAI):
                     # start at a, with with file offset increasing the char
                     f = file_offset
                     current_piece = None
-                    if (8 - r, f) in self.current_state.board.keys():
-                        current_piece = self.current_state.board[(8 - r, f)]
+                    if (8 - r, f) in state.board.keys():
+                        current_piece = state.board[(8 - r, f)]
 
                     code = " . "  # default "no piece"
                     if current_piece is not None:
