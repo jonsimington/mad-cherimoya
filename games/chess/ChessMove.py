@@ -9,7 +9,8 @@ class ChessMove:
         self.castling = False
 
     def __eq__(self, other):
-        return self.board_location_from == other.board_location_from and \
+        return other.piece_moved_id[0].lower() == other.piece_moved_id[0].lower() and \
+               self.board_location_from == other.board_location_from and \
                self.board_location_to == other.board_location_to
 
     def __repr__(self):
