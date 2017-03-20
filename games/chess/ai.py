@@ -208,10 +208,6 @@ class AI(BaseAI):
         #    3) prints how much time remaining this AI has to calculate moves
         #    4) makes a random (and probably invalid) move.
 
-        # 1) print the board to the console
-        self.print_current_board()
-        print()
-
         if len(self.game.moves) > 0:
             """move_made = self.game.moves[-1]
 
@@ -353,6 +349,9 @@ class AI(BaseAI):
                 AI.rank_file_to_board_loc((m.to_rank, m.to_file))
             self.current_state.enemy_pieces[enemy_piece_id].rank_file = m.to_rank, m.to_file
             self.current_state.enemy_pieces[enemy_piece_id].has_moved = True
+
+        self.print_current_board()
+        print()
 
         # 3) print how much time remaining this AI has to calculate moves
         print("Time Remaining: " + str(self.player.time_remaining) + " ns")
