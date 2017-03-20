@@ -404,10 +404,10 @@ class AI(BaseAI):
 
     def valid_moves_in_state(self, state, me=True):
         chosen_pieces = state.pieces if me else state.enemy_pieces
-        valid_moves = set()
+        valid_moves = []
         # Iterate through each piece we own
         for key, piece in chosen_pieces.items():
-            valid_moves |= self.valid_moves_for_piece(piece, state, me)
+            valid_moves.extend(self.valid_moves_for_piece(piece, state, me))
 
         return valid_moves
 
@@ -421,7 +421,7 @@ class AI(BaseAI):
         me = True
 
         # Set the initial depth, for me
-        state.neighbors = list(self.valid_moves_in_state(state, me))
+        state.neighbors = self.valid_moves_in_state(state, me)
 
         current_level = state.neighbors
 
@@ -435,7 +435,7 @@ class AI(BaseAI):
             me = not me
             next_level = []
             for neighbor in current_level:
-                neighbor.neighbors.extend(list(self.valid_moves_in_state(neighbor, me)))
+                neighbor.neighbors.extend(self.valid_moves_in_state(neighbor, me))
 
                 # For easy access, add them to a new list
                 next_level.extend(neighbor.neighbors)
@@ -740,7 +740,7 @@ class AI(BaseAI):
         rank_direction = -self.player.rank_direction if me else -self.player.opponent.rank_direction
         opponent_color = self.player.opponent.color if me else self.player.color
 
-        valid_moves = set()
+        valid_moves = []
         extra_moves = []
         if piece.type == PieceType.PAWN:
             r, c = piece.board_location
@@ -809,11 +809,11 @@ class AI(BaseAI):
                                         new_move.en_passant = m.en_passant
                                         new_move.castling = m.castling
 
-                                        valid_moves.add(self.state_after_move(state, new_move, me))
+                                        valid_moves.append(self.state_after_move(state, new_move, me))
                                 else:
-                                    valid_moves.add(s)
+                                    valid_moves.append(s)
                             else:
-                                valid_moves.add(s)
+                                valid_moves.append(s)
                     else:
                         # If it's invalid for a certain step, certainly all subsequent steps will be invalid
                         break
@@ -822,7 +822,7 @@ class AI(BaseAI):
             if self.is_valid(m, state, me):
                 s = self.state_after_move(state, m, me)
                 if not s.is_in_check(me):
-                    valid_moves.add(s)
+                    valid_moves.append(s)
 
         return valid_moves
 
