@@ -206,7 +206,7 @@ class ChessState:
 
         for material_list in material_lists:
             for piece_list in [(self.pieces, self.enemy_pieces), (self.enemy_pieces, self.pieces)]:
-                piece_set = set([p.type for p in piece_list[0]]), set([p.type for p in piece_list[1]])
+                piece_set = set([p.type for p in piece_list[0].values()]), set([p.type for p in piece_list[1].values()])
                 if piece_set[0] == material_list[0] and piece_set[1] == material_list[1]:
                     # Materials are the same
 
