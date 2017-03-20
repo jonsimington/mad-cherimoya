@@ -477,7 +477,9 @@ class AI(BaseAI):
         max_value = None
         # Base case, return heuristic
         if depth == 0:
-            return self.chess_heuristic(state)
+            val = self.chess_heuristic(state)
+            print("\t={}".format(val))
+            return val
         elif len(state.neighbors) == 0:
             # Some sort of stalemante situation
             print("No available moves! Leaf node!")
@@ -493,11 +495,13 @@ class AI(BaseAI):
         return max_value
 
     def dl_mm_min_val(self, state, depth):
-        print("MinV({}, {}".format(str(state), depth))
+        print("MinV({}, {})".format(str(state), depth))
         min_value = None
         # Base case, return heuristic
         if depth == 0:
-            return self.chess_heuristic(state)
+            val = self.chess_heuristic(state)
+            print("\t={}".format(val))
+            return val
         elif len(state.neighbors) == 0:
             print("No available moves! Leaf node!")
             return self.chess_heuristic(state)
