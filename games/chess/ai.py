@@ -406,7 +406,7 @@ class AI(BaseAI):
         chosen_pieces = state.pieces if me else state.enemy_pieces
         valid_moves = []
         # Iterate through each piece we own
-        for key, piece in chosen_pieces.items():
+        for piece in sorted(chosen_pieces.values()):
             valid_moves.extend(self.valid_moves_for_piece(piece, state, me))
 
         return valid_moves

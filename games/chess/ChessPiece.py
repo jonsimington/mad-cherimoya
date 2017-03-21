@@ -16,6 +16,9 @@ class ChessPiece:
         if self.color == "White":
             return str(self.type) + str(self.id)
         return str(self.type).lower() + str(self.id).zfill(2)
+
+    def __lt__(self, other):
+        return str(self) < str(other)
     
     def convert_from_game_piece(self, piece):
         self.type = PieceType[piece.type.upper()]
