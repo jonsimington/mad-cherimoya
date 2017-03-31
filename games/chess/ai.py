@@ -1,4 +1,5 @@
 # This is where you build your AI for the Chess game.
+import math
 
 from joueur.base_ai import BaseAI
 from games.chess.ChessPiece import ChessPiece
@@ -358,7 +359,7 @@ class AI(BaseAI):
         print()
 
         # Generate a random, valid move
-        state = self.id_mm(self.current_state)  # random_valid_move(self.current_state)
+        state = self.id_ab_mm(self.current_state)  # random_valid_move(self.current_state)
         move = state.move_made
         print("Chosen move: {}".format(str(move)))
         rank_file = AI.board_loc_to_rank_file(move.board_location_to)
@@ -410,6 +411,139 @@ class AI(BaseAI):
             valid_moves.extend(self.valid_moves_for_piece(piece, state, me))
 
         return valid_moves
+
+    def id_ab_mm(self, current_state):
+        # Depth-limited, alpha-beta, minimax
+        print("Depth-limited, alpha-beta minimax for {}".format(self.player.color))
+        max_depth = 3
+        me = True
+
+        current_state.neighbors = self.valid_moves_in_state(current_state, me)
+
+        frontier = current_state.neighbors
+
+        for depth in range(1, max_depth + 1, 1):
+            # Generate the next level
+            print("Generating level {}...".format(depth + 1))
+            me = not me
+
+            new_frontier = []
+            for state in frontier:
+                state.neighbors = self.valid_moves_in_state(state, me)
+
+                new_frontier.extend(state.neighbors)
+            frontier = new_frontier
+            new_frontier = None
+
+            print("Done.")
+
+            best_state = self.ab_dl_mm(current_state, depth)
+
+        return best_state
+
+    def ab_dl_mm(self, current_state, max_depth):
+        print("Alpha-beta, depth-limited minimax with max depth {}".format(max_depth))
+        if max_depth == 0:
+            return None
+        elif current_state.neighbors is None or len(current_state.neighbors) == 0:
+            return self.chess_heuristic(current_state)
+
+        # Alpha, Beta to -inf and inf
+        alpha, beta = -math.inf, math.inf
+
+        max_value = 0
+        best_state = None
+
+        counter = 0
+        for neighbor in current_state.neighbors:
+            value = self.ab_dl_mm_min_val(neighbor, alpha, beta, max_depth - 1)
+
+            counter += 1
+
+            if best_state is None or value > max_value:
+                best_state = neighbor
+                max_value = value
+
+            # Check for fail high in max
+            if value >= beta:
+                # Prune and return
+                print("Fail high in max! Pruned off {} nodes".format(len(current_state.neighbors) - counter))
+                return max_value
+
+            # Update alpha
+            if value > alpha:
+                alpha = value
+
+        return best_state
+
+    def ab_dl_mm_max_val(self, state, alpha, beta, depth):
+        print("MaxV({}, {}, {}, {})".format(str(state), alpha, beta, depth))
+        max_value = None
+        # Base case, return heuristic
+        if depth == 0:
+            val = self.chess_heuristic(state)
+            print("\t={}".format(val))
+            return val
+        elif len(state.neighbors) == 0:
+            # Some sort of stalemante situation
+            print("No available moves! Leaf node!")
+            return self.chess_heuristic(state)
+
+        print("Looking at {} neighbors".format(len(state.neighbors)))
+        counter = 0
+        for neighbor in state.neighbors:
+            value = self.ab_dl_mm_min_val(neighbor, alpha, beta, depth - 1)
+
+            counter += 1
+
+            if max_value is None or value > max_value:
+                max_value = value
+
+            # Check for fail high in max
+            if value >= beta:
+                # Prune and return
+                print("Fail high in max! Pruned off {} nodes".format(len(state.neighbors) - counter))
+                return max_value
+
+            # Update alpha
+            if value > alpha:
+                alpha = value
+
+        return max_value
+
+    def ab_dl_mm_min_val(self, state, alpha, beta, depth):
+        print("MinV({}, {}, {}, {})".format(str(state), alpha, beta, depth))
+        min_value = None
+        # Base case, return heuristic
+        if depth == 0:
+            val = self.chess_heuristic(state)
+            print("\t={}".format(val))
+            return val
+        elif len(state.neighbors) == 0:
+            print("No available moves! Leaf node!")
+            return self.chess_heuristic(state)
+
+        print("Looking at {} neighbors".format(len(state.neighbors)))
+        counter = 0
+        for neighbor in state.neighbors:
+            value = self.ab_dl_mm_max_val(neighbor, alpha, beta, depth - 1)
+
+            counter += 1
+
+            if min_value is None or value < min_value:
+                min_value = value
+
+            # Check for fail low in min
+            if value <= alpha:
+                # Prune and return
+                print("Fail low in min! Pruned off {} nodes".format(len(state.neighbors) - counter))
+                return min_value
+
+            # Update beta
+            if value < beta:
+                beta = value
+
+        return min_value
 
     def id_mm(self, state):
         print("ID-Minimax for {}".format(self.player.color))
