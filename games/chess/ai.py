@@ -415,8 +415,11 @@ class AI(BaseAI):
     def id_ab_mm(self, current_state):
         # Depth-limited, alpha-beta, minimax
         print("Depth-limited, alpha-beta minimax for {}".format(self.player.color))
-        max_depth = 3
+        max_depth = 4
         me = True
+
+        # Clear the neighbors of the current state
+        current_state.neighbors = None
 
         for depth in range(1, max_depth + 1, 1):
             best_state = self.ab_dl_mm(current_state, depth)
