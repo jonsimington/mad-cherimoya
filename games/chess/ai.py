@@ -418,25 +418,7 @@ class AI(BaseAI):
         max_depth = 3
         me = True
 
-        current_state.neighbors = self.valid_moves_in_state(current_state, me)
-
-        frontier = current_state.neighbors
-
         for depth in range(1, max_depth + 1, 1):
-            # Generate the next level
-            print("Generating level {}...".format(depth + 1))
-            me = not me
-
-            new_frontier = []
-            for state in frontier:
-                state.neighbors = self.valid_moves_in_state(state, me)
-
-                new_frontier.extend(state.neighbors)
-            frontier = new_frontier
-            new_frontier = None
-
-            print("Done.")
-
             best_state = self.ab_dl_mm(current_state, depth)
 
         return best_state
@@ -445,7 +427,10 @@ class AI(BaseAI):
         print("Alpha-beta, depth-limited minimax with max depth {}".format(max_depth))
         if max_depth == 0:
             return None
-        elif current_state.neighbors is None or len(current_state.neighbors) == 0:
+        elif current_state.neighbors is None:
+            # Generate my current moves
+            current_state.neighbors = self.valid_moves_in_state(current_state, True)
+        elif len(current_state.neighbors) == 0:
             return self.chess_heuristic(current_state)
 
         # Alpha, Beta to -inf and inf
@@ -478,6 +463,10 @@ class AI(BaseAI):
 
     def ab_dl_mm_max_val(self, state, alpha, beta, depth):
         print("MaxV({}, {}, {}, {})".format(str(state), alpha, beta, depth))
+        if state.neighbors is None:
+            # Generate neighbors
+            state.neighbors = self.valid_moves_in_state(state, True)
+
         max_value = None
         # Base case, return heuristic
         if depth == 0:
@@ -508,11 +497,17 @@ class AI(BaseAI):
             # Update alpha
             if value > alpha:
                 alpha = value
+                print("(a, b) = ({}, {})".format(alpha, beta))
 
+        print("Returning {} to min".format(max_value))
         return max_value
 
     def ab_dl_mm_min_val(self, state, alpha, beta, depth):
         print("MinV({}, {}, {}, {})".format(str(state), alpha, beta, depth))
+        if state.neighbors is None:
+            # Generate neighbors
+            state.neighbors = self.valid_moves_in_state(state, False)
+
         min_value = None
         # Base case, return heuristic
         if depth == 0:
@@ -542,7 +537,9 @@ class AI(BaseAI):
             # Update beta
             if value < beta:
                 beta = value
+                print("(a, b) = ({}, {})".format(alpha, beta))
 
+        print("Returning {} to max".format(min_value))
         return min_value
 
     def id_mm(self, state):

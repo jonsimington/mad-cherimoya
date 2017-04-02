@@ -12,7 +12,7 @@ class ChessState:
         self.enemy_king_board_location = None
         self.king_board_location = None
         self.fen_string = None
-        self.neighbors = []
+        self.neighbors = None
         self.move_made = None
         self.heuristic_value = None
         self.ply_since_capture_or_pawn_movement = 0
