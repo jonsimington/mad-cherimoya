@@ -6,6 +6,7 @@ from games.chess.ChessPiece import ChessPiece
 from games.chess.PieceType import PieceType
 from games.chess.ChessMove import ChessMove
 from games.chess.MoveType import MoveType
+from games.chess.timeout import timeout
 from games.chess.ChessState import ChessState
 import random
 from copy import deepcopy
@@ -415,14 +416,16 @@ class AI(BaseAI):
     def id_ab_mm(self, current_state):
         # Depth-limited, alpha-beta, minimax
         print("Depth-limited, alpha-beta minimax for {}".format(self.player.color))
-        max_depth = 4
+        max_depth = 3
+        best_state = None
         me = True
 
         # Clear the neighbors of the current state
         current_state.neighbors = None
 
-        for depth in range(1, max_depth + 1, 1):
-            best_state = self.ab_dl_mm(current_state, depth)
+        with timeout(seconds=20):
+            for depth in range(1, max_depth + 1, 1):
+                best_state = self.ab_dl_mm(current_state, depth)
 
         return best_state
 
