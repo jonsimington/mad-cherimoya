@@ -416,17 +416,22 @@ class AI(BaseAI):
     def id_ab_mm(self, current_state):
         # Depth-limited, alpha-beta, minimax
         print("Depth-limited, alpha-beta minimax for {}".format(self.player.color))
-        max_depth = 3
+        max_depth = 4
         best_state = None
         me = True
 
         # Clear the neighbors of the current state
         current_state.neighbors = None
 
-        with timeout(seconds=20):
+        with timeout(seconds=25):
             for depth in range(1, max_depth + 1, 1):
-                best_state = self.ab_dl_mm(current_state, depth)
+                try:
+                    best_state = self.ab_dl_mm(current_state, depth)
+                except TimeoutError:
+                    print("Timed out! Finished up to depth {}".format(depth - 1))
+                    break
 
+        print("Best move: {}".format(best_state))
         return best_state
 
     def ab_dl_mm(self, current_state, max_depth):
@@ -465,6 +470,7 @@ class AI(BaseAI):
             if value > alpha:
                 alpha = value
 
+        print("Completed!")
         return best_state
 
     def ab_dl_mm_max_val(self, state, alpha, beta, depth):
