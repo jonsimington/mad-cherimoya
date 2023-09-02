@@ -23,7 +23,7 @@ class AI(BaseAI):
             str: The name of your Player.
         """
 
-        return "Ethan and the Bradberries"  # REPLACE THIS WITH YOUR TEAM NAME
+        return "Mad Cherimoya"  # REPLACE THIS WITH YOUR TEAM NAME
 
     def start(self):
         """ This is called once the game starts and your AI knows its playerID
@@ -431,6 +431,9 @@ class AI(BaseAI):
                     print("Timed out! Finished up to depth {}".format(depth - 1))
                     break
 
+        self.history_table.clear()
+
+
         print("Best move: {}".format(best_state))
         return best_state
 
@@ -634,7 +637,7 @@ class AI(BaseAI):
 
             if max_value is None or value > max_value:
                 max_value = value
-        
+
         return max_value
 
     def dl_mm_min_val(self, state, depth):
